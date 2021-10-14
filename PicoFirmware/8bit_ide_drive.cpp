@@ -15,6 +15,7 @@
 
 #include <stdio.h>
 #include "pico/stdlib.h"
+#include "isaout.pio.h"
 
 int main()
 {

@@ -10,7 +10,6 @@ set(CMAKE_CXX_STANDARD 17)
 # Initialize the SDK
 pico_sdk_init()
 
-
 add_compile_options(-Wall
         -Wno-format          # int != int32_t as far as the compiler is concerned because gcc has int32_t as long int
         -Wno-unused-function # we have some for the docs that aren't called
@@ -21,9 +20,11 @@ if (TARGET tinyusb_device)
         add_executable(8bit_ide_drive
                 8bit_ide_drive.cpp
                 )
-    
+
+        pico_generate_pio_header(8bit_ide_drive ${CMAKE_CURRENT_LIST_DIR}/isaout.pio)
+                
         # Pull in our pico_stdlib which aggregates commonly used features
-        target_link_libraries(8bit_ide_drive pico_stdlib)
+        target_link_libraries(8bit_ide_drive pico_stdlib hardware_pio)
     
         # enable usb output, disable uart output
         pico_enable_stdio_usb(8bit_ide_drive 1)

@@ -1,0 +1,23 @@
+.program isaout
+
+; Pulls 2 bit address values and 8 bit data values from the FIFO and 
+; outputs using simplified ISA ~IOW bus timings.
+; Assumes 125 MHz clock and 10 MHz ISA bus - so 25 cycles per ISA cycle.
+; Total time for one wrap when there is continuous data in the FIFO should be 5 ISA bus clocks. 
+; We could make this code us less instructions shorter by slowing the clock, however this is
+; just for experimentation testing the moment.
+
+.side_set 1
+
+.wrap_target
+    pull                side 1  ; Blocking pull from FIFO.
+    out pins, 10 [14]   side 1  ; Set address and data, then wait the rest of the ISA bus clock.
+    nop [8]             side 1
+    nop [14]            side 0  ; Set ~IOW low and hold for ISA bus clocks. (75 cycles)
+    nop [14]            side 0
+    nop [14]            side 0
+    nop [14]            side 0
+    nop [14]            side 0
+    nop [14]            side 1  ; Set ~IOW high and wait one more ISA bus clock.
+    nop [9]             side 1
+.wrap
