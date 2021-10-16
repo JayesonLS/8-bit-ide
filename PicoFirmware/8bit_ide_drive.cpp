@@ -18,7 +18,7 @@
 #include "hardware/pio.h"
 #include "isaout.pio.h"
 
-static inline void isaout_program_init(PIO pio, uint sm, uint offset, uint pinStart, uint dataCount, uint addrCount) 
+static inline void isaout_program_init(PIO pio, uint sm, uint offset, uint pinStart, uint dataCount, uint addrCount, uint iowPin) 
 {
     uint totalOutputPinCount = dataCount + addrCount;
 
@@ -28,8 +28,12 @@ static inline void isaout_program_init(PIO pio, uint sm, uint offset, uint pinSt
     }
     pio_sm_set_consecutive_pindirs(pio, sm, pinStart, totalOutputPinCount, true);
 
+    pio_gpio_init(pio, iowPin);
+    pio_sm_set_consecutive_pindirs(pio, sm, iowPin, 1, true);
+
     pio_sm_config c = isaout_program_get_default_config(offset);
     sm_config_set_out_pins(&c, pinStart, totalOutputPinCount);
+    sm_config_set_sideset_pins(&c, iowPin);
     pio_sm_init(pio, sm, offset, &c);
 
     pio_sm_set_enabled(pio, sm, true);
@@ -42,7 +46,7 @@ int main()
     PIO pio = pio0;
     uint programOffset = pio_add_program(pio, &isaout_program);
     uint outSm = pio_claim_unused_sm(pio, true);
-    isaout_program_init(pio, outSm, programOffset, 0, 8, 3);
+    isaout_program_init(pio, outSm, programOffset, 0, 8, 2, 10);
 
     for (int ledValue = 0; ; ledValue++)
     {
@@ -50,7 +54,7 @@ int main()
 
         pio_sm_put_blocking(pio, outSm, ledValue);
         
-        sleep_ms(10);
+        sleep_ms(100);
     }
 
     return 0;

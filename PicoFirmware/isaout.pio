@@ -1,7 +1,9 @@
 
 .program isaout
+.side_set 1
 
-; Just output one bit at the moment. Will add more bits / pins later.
+    pull            side 0
+    out pins, 10    side 0
 
-    pull
-    out pins, 11
+    pull            side 1
+    out pins, 10    side 1
