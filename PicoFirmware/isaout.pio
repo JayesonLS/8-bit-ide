@@ -1,3 +1,5 @@
+; Test PIO program for outputting data with approximate ISA timing.
+;
 ; Copyright (C) 2021 Titanium Studios Pty Ltd 
 ; 
 ; This program is free software : you can redistribute it and/or modify
@@ -15,7 +17,7 @@
 
 ; Pulls 2 bit address values and 8 bit data values from the FIFO and 
 ; outputs using simplified ISA ~IOW bus timings.
-; Assumes 125 MHz clock and 10 MHz ISA bus - so 25 cycles per ISA cycle.
+; Assumes 125 MHz clock and 10 MHz ISA bus - so 12.5 cycles per ISA bus clock cycle.
 ; Total time for one wrap when there is continuous data in the FIFO should be 5 ISA bus clocks. 
 ; We could make this code us less instructions shorter by slowing the clock, however this is
 ; just for experimentation testing the moment.
@@ -24,12 +26,31 @@
 .side_set 1
 
     pull                side 1  ; Blocking pull from FIFO.
-    out pins, 10 [14]   side 1  ; Set address and data, then wait the rest of the ISA bus clock.
-    nop [8]             side 1
-    nop [14]            side 0  ; Set ~IOW low and hold for ISA bus clocks. (75 cycles)
-    nop [14]            side 0
-    nop [14]            side 0
-    nop [14]            side 0
-    nop [14]            side 0
-    nop [14]            side 1  ; Set ~IOW high and wait one more ISA bus clock.
-    nop [9]             side 1
+    out pins, 10 [10]   side 1  ; Set address and data, then wait the rest of the ISA bus clock.
+    nop [12]            side 0  ; Set ~IOW low and hold for 3 ISA bus clocks.
+    nop [11]            side 0
+    nop [11]            side 0
+    nop [12]            side 1  ; Set ~IOW high and wait one more ISA bus clock.
+
+% c-sdk {
+static inline void isaout_program_init(PIO pio, uint sm, uint offset, uint pinStart, uint dataCount, uint addrCount, uint iowPin) 
+{
+    uint totalOutputPinCount = dataCount + addrCount;
+
+    for (uint i = 0; i < totalOutputPinCount; i++)
+    {
+        pio_gpio_init(pio, pinStart + i);
+    }
+    pio_sm_set_consecutive_pindirs(pio, sm, pinStart, totalOutputPinCount, true);
+
+    pio_gpio_init(pio, iowPin);
+    pio_sm_set_consecutive_pindirs(pio, sm, iowPin, 1, true);
+
+    pio_sm_config c = isaout_program_get_default_config(offset);
+    sm_config_set_out_pins(&c, pinStart, totalOutputPinCount);
+    sm_config_set_sideset_pins(&c, iowPin);
+    pio_sm_init(pio, sm, offset, &c);
+
+    pio_sm_set_enabled(pio, sm, true);
+}
+%}

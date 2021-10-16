@@ -18,27 +18,6 @@
 #include "hardware/pio.h"
 #include "isaout.pio.h"
 
-static inline void isaout_program_init(PIO pio, uint sm, uint offset, uint pinStart, uint dataCount, uint addrCount, uint iowPin) 
-{
-    uint totalOutputPinCount = dataCount + addrCount;
-
-    for (uint i = 0; i < totalOutputPinCount; i++)
-    {
-        pio_gpio_init(pio, pinStart + i);
-    }
-    pio_sm_set_consecutive_pindirs(pio, sm, pinStart, totalOutputPinCount, true);
-
-    pio_gpio_init(pio, iowPin);
-    pio_sm_set_consecutive_pindirs(pio, sm, iowPin, 1, true);
-
-    pio_sm_config c = isaout_program_get_default_config(offset);
-    sm_config_set_out_pins(&c, pinStart, totalOutputPinCount);
-    sm_config_set_sideset_pins(&c, iowPin);
-    pio_sm_init(pio, sm, offset, &c);
-
-    pio_sm_set_enabled(pio, sm, true);
-}
-
 int main()
 {
     stdio_init_all();
@@ -52,7 +31,7 @@ int main()
     {
         //printf("8bit_ide_drive heartbeat.\n");
 
-        pio_sm_put_blocking(pio, outSm, ledValue >> 16);
+        pio_sm_put_blocking(pio, outSm, ledValue); 
         
 //        sleep_ms(100);
     }
