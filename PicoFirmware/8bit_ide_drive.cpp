@@ -18,13 +18,18 @@
 #include "hardware/pio.h"
 #include "isaout.pio.h"
 
-static inline void isaout_program_init(PIO pio, uint sm, uint offset, uint pin) 
+static inline void isaout_program_init(PIO pio, uint sm, uint offset, uint pinStart, uint dataCount, uint addrCount) 
 {
-    pio_gpio_init(pio, pin);
-    pio_sm_set_consecutive_pindirs(pio, sm, pin, 1, true);
+    uint totalOutputPinCount = dataCount + addrCount;
+
+    for (uint i = 0; i < totalOutputPinCount; i++)
+    {
+        pio_gpio_init(pio, pinStart + i);
+    }
+    pio_sm_set_consecutive_pindirs(pio, sm, pinStart, totalOutputPinCount, true);
 
     pio_sm_config c = isaout_program_get_default_config(offset);
-    sm_config_set_out_pins(&c, pin, 1);
+    sm_config_set_out_pins(&c, pinStart, totalOutputPinCount);
     pio_sm_init(pio, sm, offset, &c);
 
     pio_sm_set_enabled(pio, sm, true);
@@ -37,15 +42,15 @@ int main()
     PIO pio = pio0;
     uint programOffset = pio_add_program(pio, &isaout_program);
     uint outSm = pio_claim_unused_sm(pio, true);
-    isaout_program_init(pio, outSm, programOffset, PICO_DEFAULT_LED_PIN);
+    isaout_program_init(pio, outSm, programOffset, 0, 8, 3);
 
-    for (int ledValue = 0; ; ledValue ^= 1)
+    for (int ledValue = 0; ; ledValue++)
     {
-        printf("8bit_ide_drive heartbeat.\n");
+        //printf("8bit_ide_drive heartbeat.\n");
 
         pio_sm_put_blocking(pio, outSm, ledValue);
         
-        sleep_ms(1000);
+        sleep_ms(10);
     }
 
     return 0;

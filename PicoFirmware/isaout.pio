@@ -4,4 +4,4 @@
 ; Just output one bit at the moment. Will add more bits / pins later.
 
     pull
-    out pins, 1
+    out pins, 11
