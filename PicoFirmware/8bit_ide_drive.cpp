@@ -52,9 +52,9 @@ int main()
     {
         //printf("8bit_ide_drive heartbeat.\n");
 
-        pio_sm_put_blocking(pio, outSm, ledValue);
+        pio_sm_put_blocking(pio, outSm, ledValue >> 16);
         
-        sleep_ms(100);
+//        sleep_ms(100);
     }
 
     return 0;
