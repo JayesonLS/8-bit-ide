@@ -703,8 +703,6 @@ Text GLabel 6550 4400 2    39   Input ~ 0
 ~DRIVE_ACTIVE
 Wire Wire Line
 	9900 5050 9700 5050
-Text GLabel 8300 3750 0    39   Input ~ 0
-~DRIVE_ACTIVE~_3V3
 Text GLabel 6150 4750 0    39   Input ~ 0
 ~DRIVE_ACTIVE~_3V3
 $Comp
@@ -952,10 +950,6 @@ Text GLabel 9900 5050 2    50   Input ~ 0
 SD_DI
 Text GLabel 9900 5150 2    50   Input ~ 0
 SD_SCK
-Text GLabel 10000 4150 2    50   Input ~ 0
-SD1_CS
-Text GLabel 8700 2050 3    50   Input ~ 0
-SD1_CD
 $Comp
 L Connector_Generic:Conn_01x06 J5
 U 1 1 61700DAF
@@ -1042,8 +1036,6 @@ Wire Wire Line
 	9500 2450 9400 2450
 Wire Wire Line
 	9400 2450 9400 2750
-Text GLabel 8300 3650 0    50   Input ~ 0
-CFG_CLK
 Text GLabel 9300 2350 0    50   Input ~ 0
 CFG_CLK
 NoConn ~ 10500 1250
@@ -1078,8 +1070,6 @@ Wire Wire Line
 Connection ~ 6250 2150
 Wire Wire Line
 	6250 2150 6350 2150
-Wire Wire Line
-	9700 4150 9900 4150
 Wire Wire Line
 	9500 1150 9400 1150
 Connection ~ 9400 2450
@@ -1195,17 +1185,6 @@ DRIVE_SIZE_2
 Text Label 8800 1650 0    50   ~ 0
 DRIVE_SIZE_3
 $Comp
-L Switch:SW_Push SW2
-U 1 1 619AC049
-P 8150 2350
-F 0 "SW2" H 8150 2500 50  0000 C CNN
-F 1 "Init Drive" H 8150 2250 50  0000 C CNN
-F 2 "" H 8150 2550 50  0001 C CNN
-F 3 "~" H 8150 2550 50  0001 C CNN
-	1    8150 2350
-	0    1    1    0   
-$EndComp
-$Comp
 L power:GND #PWR027
 U 1 1 619B6D52
 P 8150 2750
@@ -1219,7 +1198,7 @@ $EndComp
 Wire Wire Line
 	8150 2550 8150 2750
 Text Label 8800 1750 0    50   ~ 0
-INIT_DRIVE
+BOOT_INTERNAL
 $Comp
 L Switch:SW_DIP_x04 SW1
 U 1 1 618767D9
@@ -1236,7 +1215,7 @@ $EndComp
 Wire Wire Line
 	8150 1750 9500 1750
 Wire Wire Line
-	9400 1150 9400 2450
+	9400 1150 9400 1850
 Wire Wire Line
 	8550 1250 8800 1250
 Wire Wire Line
@@ -1268,47 +1247,6 @@ Wire Wire Line
 Connection ~ 8150 1750
 Wire Wire Line
 	8150 1750 8150 2150
-$Comp
-L Device:R R12
-U 1 1 61B1CB57
-P 7800 1850
-F 0 "R12" V 7750 1650 50  0000 C CNN
-F 1 "10K" V 7800 1850 50  0000 C CNN
-F 2 "Resistor_SMD:R_1206_3216Metric" V 7730 1850 50  0001 C CNN
-F 3 "~" H 7800 1850 50  0001 C CNN
-F 4 "C17902" V 7800 1850 50  0001 C CNN "LCSC"
-	1    7800 1850
-	0    1    1    0   
-$EndComp
-Wire Wire Line
-	7650 1850 7450 1850
-$Comp
-L Device:R R13
-U 1 1 61B27406
-P 7800 1950
-F 0 "R13" V 7750 1750 50  0000 C CNN
-F 1 "10K" V 7800 1950 50  0000 C CNN
-F 2 "Resistor_SMD:R_1206_3216Metric" V 7730 1950 50  0001 C CNN
-F 3 "~" H 7800 1950 50  0001 C CNN
-F 4 "C17902" V 7800 1950 50  0001 C CNN "LCSC"
-	1    7800 1950
-	0    1    1    0   
-$EndComp
-Wire Wire Line
-	7650 1950 7450 1950
-Wire Wire Line
-	7450 1750 7450 1850
-Connection ~ 7450 1750
-Connection ~ 7450 1850
-Wire Wire Line
-	7450 1850 7450 1950
-Wire Wire Line
-	9500 1950 8700 1950
-Wire Wire Line
-	8700 2050 8700 1950
-Connection ~ 8700 1950
-Wire Wire Line
-	8700 1950 7950 1950
 $Comp
 L Device:C C1
 U 1 1 61C62A1F
@@ -1478,10 +1416,6 @@ DRQ
 Text GLabel 4800 4750 0    39   Input ~ 0
 ~DRQ~_3V3
 Wire Wire Line
-	8300 3650 8500 3650
-Wire Wire Line
-	8300 3750 8500 3750
-Wire Wire Line
 	8500 3750 8500 3650
 Connection ~ 8500 3650
 Wire Notes Line
@@ -1616,15 +1550,6 @@ Wire Notes Line
 	6950 3600 7550 3600
 Wire Notes Line
 	7550 3600 7550 6450
-Text GLabel 10000 4050 2    50   Input ~ 0
-CFG_LATCH
-Wire Wire Line
-	10000 4050 9900 4050
-Wire Wire Line
-	9900 4050 9900 4150
-Connection ~ 9900 4150
-Wire Wire Line
-	9900 4150 10000 4150
 Text GLabel 9300 2150 0    50   Input ~ 0
 CFG_LATCH
 Wire Wire Line
@@ -1635,54 +1560,58 @@ Connection ~ 1300 7250
 Wire Wire Line
 	1300 7250 1550 7250
 Wire Wire Line
-	8600 1850 9500 1850
-Connection ~ 8600 1850
-Wire Wire Line
-	7950 1850 8600 1850
-Wire Wire Line
-	8600 2050 8600 1850
-Text GLabel 8600 2050 3    50   Input ~ 0
-SD0_CD
-Text GLabel 8300 3450 0    50   Input ~ 0
-DBG_RX
-Wire Wire Line
 	9900 5350 9700 5350
 Text GLabel 9900 5350 2    50   Input ~ 0
 SD0_CS
-Wire Wire Line
-	8500 3550 8500 3450
-Wire Wire Line
-	8500 3450 8300 3450
-Wire Wire Line
-	8500 3650 8600 3650
-Wire Wire Line
-	8600 3650 8700 3650
-Connection ~ 8600 3650
-Wire Wire Line
-	8600 3350 8600 3650
-Wire Wire Line
-	8500 3550 8700 3550
-Text GLabel 8300 3350 0    50   Input ~ 0
-DBG_TX
-Wire Wire Line
-	8300 3350 8600 3350
-Connection ~ 8500 3550
-Wire Wire Line
-	8300 3550 8500 3550
-Text GLabel 8000 3550 0    50   Input ~ 0
-CFG_DATA
-$Comp
-L Device:R R14
-U 1 1 6220D4A7
-P 8150 3550
-F 0 "R14" V 8100 3750 50  0000 C CNN
-F 1 "10K" V 8150 3550 50  0000 C CNN
-F 2 "Resistor_SMD:R_1206_3216Metric" V 8080 3550 50  0001 C CNN
-F 3 "~" H 8150 3550 50  0001 C CNN
-F 4 "C17902" V 8150 3550 50  0001 C CNN "LCSC"
-	1    8150 3550
-	0    1    1    0   
-$EndComp
 Text Notes 7000 6700 0    39   ~ 0
 The PICO already has a 47uF cap on both the 5v and 3.3v\nside of the regulator, so none is included in this design.
+Text GLabel 9900 4150 2    50   Input ~ 0
+CFG_DATA
+Text GLabel 8400 3450 0    50   Input ~ 0
+DBG_RX
+Text GLabel 8400 3550 0    50   Input ~ 0
+DBG_TX
+Wire Wire Line
+	8400 3650 8500 3650
+Text GLabel 8400 3750 0    39   Input ~ 0
+~DRIVE_ACTIVE~_3V3
+Wire Wire Line
+	8400 3750 8500 3750
+Text GLabel 8400 3650 0    50   Input ~ 0
+CFG_CLK
+Wire Wire Line
+	8500 3650 8700 3650
+Wire Wire Line
+	9900 4150 9700 4150
+Wire Wire Line
+	8400 3550 8500 3550
+Wire Wire Line
+	8500 3550 8500 3650
+Wire Wire Line
+	8400 3450 8600 3450
+Wire Wire Line
+	8600 3450 8600 3550
+Wire Wire Line
+	8600 3550 8700 3550
+$Comp
+L Switch:SW_Push SW2
+U 1 1 619AC049
+P 8150 2350
+F 0 "SW2" H 8150 2500 50  0000 C CNN
+F 1 "Boot Internal" H 8150 2250 50  0000 C CNN
+F 2 "" H 8150 2550 50  0001 C CNN
+F 3 "~" H 8150 2550 50  0001 C CNN
+	1    8150 2350
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	9500 1850 9400 1850
+Connection ~ 9400 1850
+Wire Wire Line
+	9400 1850 9400 1950
+Wire Wire Line
+	9500 1950 9400 1950
+Connection ~ 9400 1950
+Wire Wire Line
+	9400 1950 9400 2450
 $EndSCHEMATC
