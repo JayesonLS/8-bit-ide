@@ -1466,17 +1466,6 @@ F 3 "" H 1150 7350 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L Connector_Generic:Conn_01x04 J3
-U 1 1 618296A7
-P 850 7050
-F 0 "J3" H 768 7367 50  0000 C CNN
-F 1 "XTA Power" H 768 7276 50  0000 C CNN
-F 2 "w_conn_pc:conn_hdd_15-24-4441" H 850 7050 50  0001 C CNN
-F 3 "~" H 850 7050 50  0001 C CNN
-	1    850  7050
-	-1   0    0    -1  
-$EndComp
-$Comp
 L 74xx:74LS125 U3
 U 5 1 61A25588
 P 6150 6950
@@ -1614,4 +1603,15 @@ Wire Wire Line
 Connection ~ 9400 1950
 Wire Wire Line
 	9400 1950 9400 2450
+$Comp
+L Connector_Generic:Conn_01x04 J3
+U 1 1 618296A7
+P 850 7050
+F 0 "J3" H 768 7367 50  0000 C CNN
+F 1 "XTA Power" H 768 7276 50  0000 C CNN
+F 2 "w_conn_pc:conn_hdd_15-24-4441" H 850 7050 50  0001 C CNN
+F 3 "~" H 850 7050 50  0001 C CNN
+	1    850  7050
+	-1   0    0    -1  
+$EndComp
 $EndSCHEMATC
