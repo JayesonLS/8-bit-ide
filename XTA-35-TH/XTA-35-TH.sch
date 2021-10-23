@@ -295,37 +295,37 @@ Wire Wire Line
 	10900 4550 10800 4550
 Wire Wire Line
 	10400 4550 9700 4550
-Text GLabel 8500 4350 0    50   Input ~ 0
+Text GLabel 8500 4050 0    50   Input ~ 0
 D0_3V3
-Text GLabel 8500 4450 0    50   Input ~ 0
+Text GLabel 8500 4150 0    50   Input ~ 0
 D1_3V3
-Text GLabel 8500 4550 0    50   Input ~ 0
+Text GLabel 8500 4350 0    50   Input ~ 0
 D2_3V3
-Text GLabel 8500 4650 0    50   Input ~ 0
+Text GLabel 8500 4450 0    50   Input ~ 0
 D3_3V3
 Wire Wire Line
 	8500 3950 8700 3950
-Text GLabel 8500 4850 0    50   Input ~ 0
+Text GLabel 8500 4550 0    50   Input ~ 0
 D4_3V3
 Wire Wire Line
 	8500 4050 8700 4050
-Text GLabel 8500 4950 0    50   Input ~ 0
+Text GLabel 8500 4650 0    50   Input ~ 0
 D5_3V3
 Wire Wire Line
 	8500 4150 8700 4150
-Text GLabel 8500 5050 0    50   Input ~ 0
+Text GLabel 8500 4850 0    50   Input ~ 0
 D6_3V3
 Wire Wire Line
 	8500 4350 8700 4350
-Text GLabel 8500 5150 0    50   Input ~ 0
+Text GLabel 8500 4950 0    50   Input ~ 0
 D7_3V3
 Wire Wire Line
 	8500 4450 8700 4450
-Text GLabel 8500 5350 0    50   Input ~ 0
+Text GLabel 8500 5050 0    50   Input ~ 0
 A0_3V3
 Wire Wire Line
 	8500 4550 8700 4550
-Text GLabel 8500 5450 0    50   Input ~ 0
+Text GLabel 8500 5150 0    50   Input ~ 0
 A1_3V3
 Wire Wire Line
 	8500 4650 8700 4650
@@ -333,19 +333,19 @@ Text Notes 7000 6850 0    39   ~ 0
 On GP26-28, there is a clamp diode\nto 3.3v, should one be needed.
 Wire Wire Line
 	8500 4850 8700 4850
-Text GLabel 8500 4150 0    50   Input ~ 0
+Text GLabel 8500 5350 0    50   Input ~ 0
 AEN_3V3
-Text GLabel 8500 4050 0    39   Input ~ 0
+Text GLabel 8500 5450 0    39   Input ~ 0
 ~DACK~_3V3
-Text GLabel 9900 4850 2    39   Input ~ 0
-~DRQ~_3V3
-Text GLabel 9900 4950 2    39   Input ~ 0
-~IRQ~_3V3
-Text GLabel 9900 4350 2    39   Input ~ 0
-~IOR~_3V3
 Text GLabel 9900 4150 2    39   Input ~ 0
+~DRQ~_3V3
+Text GLabel 9900 4350 2    39   Input ~ 0
+~IRQ~_3V3
+Text GLabel 9900 5350 2    39   Input ~ 0
+~IOR~_3V3
+Text GLabel 9900 4950 2    39   Input ~ 0
 ~IOW~_3V3
-Text GLabel 9900 4450 2    39   Input ~ 0
+Text GLabel 9900 4850 2    39   Input ~ 0
 ~RESET~_3V3
 Wire Wire Line
 	8500 4950 8700 4950
@@ -359,7 +359,7 @@ Wire Wire Line
 	8500 5450 8700 5450
 Wire Wire Line
 	8700 5350 8500 5350
-Text GLabel 9900 5350 2    39   Input ~ 0
+Text GLabel 9900 4450 2    39   Input ~ 0
 ~CS~_3V3
 Wire Wire Line
 	9900 5450 9700 5450
@@ -461,14 +461,6 @@ F 3 "" H 3200 4200 50  0001 C CNN
 	1    3200 4200
 	1    0    0    -1  
 $EndComp
-Text GLabel 3700 4500 2    50   Input ~ 0
-A0_3V3
-Text GLabel 3700 4600 2    50   Input ~ 0
-A1_3V3
-Text GLabel 3700 4700 2    50   Input ~ 0
-AEN_3V3
-Text GLabel 3700 4800 2    39   Input ~ 0
-~DACK~_3V3
 Text GLabel 5050 5750 0    39   Input ~ 0
 ~IRQ~_3V3
 Text GLabel 3700 5100 2    39   Input ~ 0
@@ -481,16 +473,8 @@ Text GLabel 2700 5200 0    39   Input ~ 0
 ~IOW
 Text GLabel 2700 4900 0    39   Input ~ 0
 ~CS
-Text GLabel 2700 4500 0    50   Input ~ 0
-A0
-Text GLabel 2700 4600 0    50   Input ~ 0
-A1
-Text GLabel 2700 4800 0    39   Input ~ 0
-~DACK
 Text GLabel 5450 5400 2    50   Input ~ 0
 IRQ
-Text GLabel 2700 4700 0    50   Input ~ 0
-AEN
 $Comp
 L power:GND #PWR06
 U 1 1 617DC24E
@@ -612,12 +596,12 @@ $EndComp
 $Comp
 L 74xx:74LS125 U3
 U 1 1 61A05A47
-P 6250 5400
-F 0 "U3" H 6250 5717 50  0000 C CNN
-F 1 "74HCT125" H 6250 5626 50  0000 C CNN
-F 2 "Package_DIP:DIP-14_W7.62mm_Socket" H 6250 5400 50  0001 C CNN
-F 3 "http://www.ti.com/lit/gpn/sn74LS125" H 6250 5400 50  0001 C CNN
-	1    6250 5400
+P 5150 4400
+F 0 "U3" H 5150 4717 50  0000 C CNN
+F 1 "74HCT125" H 5150 4626 50  0000 C CNN
+F 2 "Package_DIP:DIP-14_W7.62mm_Socket" H 5150 4400 50  0001 C CNN
+F 3 "http://www.ti.com/lit/gpn/sn74LS125" H 5150 4400 50  0001 C CNN
+	1    5150 4400
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -634,12 +618,12 @@ $EndComp
 $Comp
 L 74xx:74LS125 U3
 U 4 1 61A24A99
-P 5150 4400
-F 0 "U3" H 5150 4717 50  0000 C CNN
-F 1 "74HCT125" H 5150 4626 50  0000 C CNN
-F 2 "Package_DIP:DIP-14_W7.62mm_Socket" H 5150 4400 50  0001 C CNN
-F 3 "http://www.ti.com/lit/gpn/sn74LS125" H 5150 4400 50  0001 C CNN
-	4    5150 4400
+P 6250 5400
+F 0 "U3" H 6250 5717 50  0000 C CNN
+F 1 "74HCT125" H 6250 5626 50  0000 C CNN
+F 2 "Package_DIP:DIP-14_W7.62mm_Socket" H 6250 5400 50  0001 C CNN
+F 3 "http://www.ti.com/lit/gpn/sn74LS125" H 6250 5400 50  0001 C CNN
+	4    6250 5400
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -769,12 +753,12 @@ $EndComp
 $Comp
 L power:GND #PWR024
 U 1 1 617CC8E0
-P 9350 2750
-F 0 "#PWR024" H 9350 2500 50  0001 C CNN
-F 1 "GND" H 9355 2577 50  0000 C CNN
-F 2 "" H 9350 2750 50  0001 C CNN
-F 3 "" H 9350 2750 50  0001 C CNN
-	1    9350 2750
+P 7200 2750
+F 0 "#PWR024" H 7200 2500 50  0001 C CNN
+F 1 "GND" H 7205 2577 50  0000 C CNN
+F 2 "" H 7200 2750 50  0001 C CNN
+F 3 "" H 7200 2750 50  0001 C CNN
+	1    7200 2750
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
@@ -790,123 +774,78 @@ Wire Wire Line
 	9450 1150 9350 1150
 Connection ~ 9350 2450
 $Comp
-L Device:R R5
+L Device:R R8
 U 1 1 619074AD
-P 7750 1850
-F 0 "R5" V 7700 1650 50  0000 C CNN
-F 1 "10K" V 7750 1850 50  0000 C CNN
-F 2 "Resistor_SMD:R_1206_3216Metric" V 7680 1850 50  0001 C CNN
-F 3 "~" H 7750 1850 50  0001 C CNN
-F 4 "C17902" V 7750 1850 50  0001 C CNN "LCSC"
-	1    7750 1850
-	0    1    1    0   
+P 8200 1050
+F 0 "R8" V 8150 850 50  0000 C CNN
+F 1 "10K" V 8200 1050 50  0000 C CNN
+F 2 "Resistor_SMD:R_1206_3216Metric" V 8130 1050 50  0001 C CNN
+F 3 "~" H 8200 1050 50  0001 C CNN
+F 4 "C17902" V 8200 1050 50  0001 C CNN "LCSC"
+	1    8200 1050
+	1    0    0    -1  
 $EndComp
 $Comp
 L Device:R R6
 U 1 1 61908537
-P 7750 1750
-F 0 "R6" V 7700 1550 50  0000 C CNN
-F 1 "10K" V 7750 1750 50  0000 C CNN
-F 2 "Resistor_SMD:R_1206_3216Metric" V 7680 1750 50  0001 C CNN
-F 3 "~" H 7750 1750 50  0001 C CNN
-F 4 "C17902" V 7750 1750 50  0001 C CNN "LCSC"
-	1    7750 1750
-	0    1    1    0   
+P 8100 1050
+F 0 "R6" V 8050 850 50  0000 C CNN
+F 1 "10K" V 8100 1050 50  0000 C CNN
+F 2 "Resistor_SMD:R_1206_3216Metric" V 8030 1050 50  0001 C CNN
+F 3 "~" H 8100 1050 50  0001 C CNN
+F 4 "C17902" V 8100 1050 50  0001 C CNN "LCSC"
+	1    8100 1050
+	1    0    0    -1  
 $EndComp
 $Comp
 L Device:R R7
 U 1 1 61911193
-P 7750 1650
-F 0 "R7" V 7700 1450 50  0000 C CNN
-F 1 "10K" V 7750 1650 50  0000 C CNN
-F 2 "Resistor_SMD:R_1206_3216Metric" V 7680 1650 50  0001 C CNN
-F 3 "~" H 7750 1650 50  0001 C CNN
-F 4 "C17902" V 7750 1650 50  0001 C CNN "LCSC"
-	1    7750 1650
-	0    1    1    0   
+P 8000 1050
+F 0 "R7" V 7950 850 50  0000 C CNN
+F 1 "10K" V 8000 1050 50  0000 C CNN
+F 2 "Resistor_SMD:R_1206_3216Metric" V 7930 1050 50  0001 C CNN
+F 3 "~" H 8000 1050 50  0001 C CNN
+F 4 "C17902" V 8000 1050 50  0001 C CNN "LCSC"
+	1    8000 1050
+	1    0    0    -1  
 $EndComp
 $Comp
-L Device:R R8
+L Device:R R5
 U 1 1 61911316
-P 7750 1950
-F 0 "R8" V 7700 1750 50  0000 C CNN
-F 1 "10K" V 7750 1950 50  0000 C CNN
-F 2 "Resistor_SMD:R_1206_3216Metric" V 7680 1950 50  0001 C CNN
-F 3 "~" H 7750 1950 50  0001 C CNN
-F 4 "C17902" V 7750 1950 50  0001 C CNN "LCSC"
-	1    7750 1950
-	0    1    1    0   
-$EndComp
-Wire Wire Line
-	7600 1650 7400 1650
-Wire Wire Line
-	7400 1650 7400 1450
-Wire Wire Line
-	7400 1650 7400 1750
-Connection ~ 7400 1650
-Wire Wire Line
-	7600 1950 7400 1950
-Wire Wire Line
-	7600 1850 7400 1850
-Connection ~ 7400 1850
-Wire Wire Line
-	7400 1850 7400 1950
-Wire Wire Line
-	7600 1750 7400 1750
-Connection ~ 7400 1750
-Wire Wire Line
-	7400 1750 7400 1850
-$Comp
-L power:+3.3V #PWR023
-U 1 1 61952AA4
-P 7400 1100
-F 0 "#PWR023" H 7400 950 50  0001 C CNN
-F 1 "+3.3V" H 7415 1273 50  0000 C CNN
-F 2 "" H 7400 1100 50  0001 C CNN
-F 3 "" H 7400 1100 50  0001 C CNN
-	1    7400 1100
+P 8300 1050
+F 0 "R5" V 8250 850 50  0000 C CNN
+F 1 "10K" V 8300 1050 50  0000 C CNN
+F 2 "Resistor_SMD:R_1206_3216Metric" V 8230 1050 50  0001 C CNN
+F 3 "~" H 8300 1050 50  0001 C CNN
+F 4 "C17902" V 8300 1050 50  0001 C CNN "LCSC"
+	1    8300 1050
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
 	9250 2150 9450 2150
 Wire Wire Line
 	9450 2350 9250 2350
-Text Label 8750 1650 0    50   ~ 0
+Text Label 8750 1750 0    50   ~ 0
 RESET_INVERT
 Text Label 8750 1850 0    50   ~ 0
-DRIVE_SIZE_2
+OPTION_3
 Text Label 8750 1950 0    50   ~ 0
-RESERVED
-$Comp
-L power:GND #PWR027
-U 1 1 619B6D52
-P 7000 2050
-F 0 "#PWR027" H 7000 1800 50  0001 C CNN
-F 1 "GND" H 7005 1877 50  0000 C CNN
-F 2 "" H 7000 2050 50  0001 C CNN
-F 3 "" H 7000 2050 50  0001 C CNN
-	1    7000 2050
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	7000 1850 7000 2050
+OPTION_4
 Text Label 8750 1250 0    50   ~ 0
 BOOT_INTERNAL
 $Comp
 L Switch:SW_DIP_x04 SW1
 U 1 1 618767D9
-P 8200 1850
-F 0 "SW1" H 8200 2317 50  0000 C CNN
-F 1 "Config" H 8200 2226 50  0000 C CNN
-F 2 "00Common:SW_DIP_SPSTx04" H 8200 1850 50  0001 C CNN
-F 3 "~" H 8200 1850 50  0001 C CNN
-F 4 "" H 8200 1850 50  0001 C CNN "LCSC"
-F 5 "" H 8200 1850 50  0001 C CNN "Part options"
-	1    8200 1850
+P 7600 1850
+F 0 "SW1" H 7600 2317 50  0000 C CNN
+F 1 "Config" H 7600 2226 50  0000 C CNN
+F 2 "00Common:SW_DIP_SPSTx04" H 7600 1850 50  0001 C CNN
+F 3 "~" H 7600 1850 50  0001 C CNN
+F 4 "" H 7600 1850 50  0001 C CNN "LCSC"
+F 5 "" H 7600 1850 50  0001 C CNN "Part options"
+	1    7600 1850
 	-1   0    0    -1  
 $EndComp
-Wire Wire Line
-	7000 1250 7000 1450
 $Comp
 L Device:C C1
 U 1 1 61C62A1F
@@ -1134,35 +1073,35 @@ F 3 "http://www.ti.com/lit/gpn/sn74LS125" H 6150 6950 50  0001 C CNN
 	5    6150 6950
 	1    0    0    -1  
 $EndComp
-Connection ~ 2250 7250
+Connection ~ 2500 7250
 Wire Wire Line
-	2350 7250 2250 7250
-Text GLabel 2350 7250 2    50   Input ~ 0
+	2600 7250 2500 7250
+Text GLabel 2600 7250 2    50   Input ~ 0
 VSYS
 Wire Wire Line
-	1650 7250 1900 7250
+	1900 7250 2150 7250
 Wire Wire Line
-	2250 7250 2250 7150
+	2500 7250 2500 7150
 $Comp
 L Device:D_Schottky D1
 U 1 1 616FE730
-P 1500 7250
-F 0 "D1" H 1550 7350 50  0000 R CNN
-F 1 "MBR120/130" H 1750 7150 50  0000 R CNN
-F 2 "Diode_SMD:D_SOD-123" H 1500 7250 50  0001 C CNN
-F 3 "~" H 1500 7250 50  0001 C CNN
-	1    1500 7250
+P 1750 7250
+F 0 "D1" H 1800 7350 50  0000 R CNN
+F 1 "MBR120/130" H 2000 7150 50  0000 R CNN
+F 2 "Diode_SMD:D_SOD-123" H 1750 7250 50  0001 C CNN
+F 3 "~" H 1750 7250 50  0001 C CNN
+	1    1750 7250
 	-1   0    0    1   
 $EndComp
 $Comp
 L power:+5V #PWR011
 U 1 1 616FC25E
-P 2250 7150
-F 0 "#PWR011" H 2250 7000 50  0001 C CNN
-F 1 "+5V" H 2265 7323 50  0000 C CNN
-F 2 "" H 2250 7150 50  0001 C CNN
-F 3 "" H 2250 7150 50  0001 C CNN
-	1    2250 7150
+P 2500 7150
+F 0 "#PWR011" H 2500 7000 50  0001 C CNN
+F 1 "+5V" H 2515 7323 50  0000 C CNN
+F 2 "" H 2500 7150 50  0001 C CNN
+F 3 "" H 2500 7150 50  0001 C CNN
+	1    2500 7150
 	1    0    0    -1  
 $EndComp
 Wire Notes Line
@@ -1228,17 +1167,6 @@ Wire Wire Line
 Wire Wire Line
 	8600 3550 8700 3550
 $Comp
-L Switch:SW_Push SW2
-U 1 1 619AC049
-P 7000 1650
-F 0 "SW2" H 7000 1800 50  0000 C CNN
-F 1 "Boot Internal" H 7000 1550 50  0000 C CNN
-F 2 "Button_Switch_THT:SW_PUSH_6mm" H 7000 1850 50  0001 C CNN
-F 3 "~" H 7000 1850 50  0001 C CNN
-	1    7000 1650
-	0    -1   1    0   
-$EndComp
-$Comp
 L Connector_Generic:Conn_01x04 J3
 U 1 1 618296A7
 P 850 7050
@@ -1261,16 +1189,8 @@ F 4 "C17902" V 8200 3550 50  0001 C CNN "LCSC"
 	1    8200 3550
 	0    1    1    0   
 $EndComp
-Text Label 8750 1750 0    50   ~ 0
+Text Label 8750 1650 0    50   ~ 0
 IRQ_SELECT
-Wire Wire Line
-	8500 1750 9450 1750
-Wire Wire Line
-	8500 1850 9450 1850
-Wire Wire Line
-	8500 1950 9450 1950
-Wire Wire Line
-	8500 1650 9450 1650
 Text GLabel 8500 3950 0    50   Input ~ 0
 SD1_CS
 $Comp
@@ -1403,21 +1323,21 @@ Connection ~ 850  2000
 $Comp
 L power:PWR_FLAG #FLG0102
 U 1 1 617B445E
-P 1900 7150
-F 0 "#FLG0102" H 1900 7225 50  0001 C CNN
-F 1 "PWR_FLAG" H 1900 7323 50  0000 C CNN
-F 2 "" H 1900 7150 50  0001 C CNN
-F 3 "~" H 1900 7150 50  0001 C CNN
-	1    1900 7150
+P 2150 7150
+F 0 "#FLG0102" H 2150 7225 50  0001 C CNN
+F 1 "PWR_FLAG" H 2150 7323 50  0000 C CNN
+F 2 "" H 2150 7150 50  0001 C CNN
+F 3 "~" H 2150 7150 50  0001 C CNN
+	1    2150 7150
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	1900 7150 1900 7250
+	2150 7150 2150 7250
 Wire Wire Line
-	1050 7250 1350 7250
-Connection ~ 1900 7250
+	1050 7250 1600 7250
+Connection ~ 2150 7250
 Wire Wire Line
-	1900 7250 2250 7250
+	2150 7250 2500 7250
 Wire Notes Line
 	2600 550  3850 550 
 Wire Notes Line
@@ -1430,30 +1350,6 @@ Text Notes 2650 700  0    79   ~ 0
 SD CONNECTORS
 Wire Wire Line
 	9350 1150 9350 1350
-$Comp
-L Device:R R9
-U 1 1 619114A7
-P 7750 1450
-F 0 "R9" V 7700 1250 50  0000 C CNN
-F 1 "10K" V 7750 1450 50  0000 C CNN
-F 2 "Resistor_SMD:R_1206_3216Metric" V 7680 1450 50  0001 C CNN
-F 3 "~" H 7750 1450 50  0001 C CNN
-F 4 "C17902" V 7750 1450 50  0001 C CNN "LCSC"
-	1    7750 1450
-	0    1    1    0   
-$EndComp
-Wire Wire Line
-	7600 1450 7400 1450
-Connection ~ 7400 1450
-Wire Wire Line
-	7400 1450 7400 1100
-Wire Wire Line
-	7900 1450 7900 1250
-Wire Wire Line
-	7000 1250 7900 1250
-Connection ~ 7900 1250
-Wire Wire Line
-	7900 1250 9450 1250
 Wire Wire Line
 	9450 1550 9350 1550
 Connection ~ 9350 1550
@@ -1612,4 +1508,166 @@ Wire Wire Line
 	8150 3850 8700 3850
 Wire Wire Line
 	9700 5350 9900 5350
+Text Label 9700 4050 0    39   ~ 0
+ADC_VREF
+Text Label 9700 3850 0    39   ~ 0
+3V3_EN
+Text GLabel 3700 4600 2    50   Input ~ 0
+A1_3V3
+Text GLabel 3700 4500 2    50   Input ~ 0
+A0_3V3
+Text GLabel 3700 4800 2    39   Input ~ 0
+~DACK~_3V3
+Text GLabel 3700 4700 2    50   Input ~ 0
+AEN_3V3
+Text GLabel 2700 4600 0    50   Input ~ 0
+A1
+Text GLabel 2700 4500 0    50   Input ~ 0
+A0
+Text GLabel 2700 4700 0    50   Input ~ 0
+AEN
+Text GLabel 2700 4800 0    39   Input ~ 0
+~DACK
+$Comp
+L power:GND #PWR027
+U 1 1 619B6D52
+P 9350 2750
+F 0 "#PWR027" H 9350 2500 50  0001 C CNN
+F 1 "GND" H 9355 2577 50  0000 C CNN
+F 2 "" H 9350 2750 50  0001 C CNN
+F 3 "" H 9350 2750 50  0001 C CNN
+	1    9350 2750
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+3.3V #PWR0107
+U 1 1 619E94CE
+P 8000 800
+F 0 "#PWR0107" H 8000 650 50  0001 C CNN
+F 1 "+3.3V" H 8015 973 50  0000 C CNN
+F 2 "" H 8000 800 50  0001 C CNN
+F 3 "" H 8000 800 50  0001 C CNN
+	1    8000 800 
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	8000 800  8000 850 
+Wire Wire Line
+	8000 850  8100 850 
+Wire Wire Line
+	8300 850  8300 900 
+Connection ~ 8000 850 
+Wire Wire Line
+	8000 850  8000 900 
+Wire Wire Line
+	8200 900  8200 850 
+Connection ~ 8200 850 
+Wire Wire Line
+	8200 850  8300 850 
+Wire Wire Line
+	8100 900  8100 850 
+Connection ~ 8100 850 
+Wire Wire Line
+	8100 850  8200 850 
+Wire Wire Line
+	9450 1250 8750 1250
+Wire Wire Line
+	8300 1200 8300 1650
+Wire Wire Line
+	8300 1650 9450 1650
+Wire Wire Line
+	8200 1200 8200 1750
+Wire Wire Line
+	8200 1750 9450 1750
+Wire Wire Line
+	8100 1200 8100 1850
+Wire Wire Line
+	8100 1850 9450 1850
+Wire Wire Line
+	8000 1200 8000 1950
+Wire Wire Line
+	8000 1950 9450 1950
+Wire Wire Line
+	7900 1650 8300 1650
+Connection ~ 8300 1650
+Wire Wire Line
+	8200 1750 7900 1750
+Connection ~ 8200 1750
+Wire Wire Line
+	7900 1850 8100 1850
+Connection ~ 8100 1850
+Wire Wire Line
+	8000 1950 7900 1950
+Connection ~ 8000 1950
+Wire Wire Line
+	7300 1950 7200 1950
+Wire Wire Line
+	7200 1950 7200 2750
+Wire Wire Line
+	7300 1650 7200 1650
+Wire Wire Line
+	7200 1650 7200 1750
+Connection ~ 7200 1950
+Wire Wire Line
+	7300 1750 7200 1750
+Connection ~ 7200 1750
+Wire Wire Line
+	7200 1750 7200 1850
+Wire Wire Line
+	7300 1850 7200 1850
+Connection ~ 7200 1850
+Wire Wire Line
+	7200 1850 7200 1950
+$Comp
+L power:GND #PWR0108
+U 1 1 61AEF52F
+P 8400 2750
+F 0 "#PWR0108" H 8400 2500 50  0001 C CNN
+F 1 "GND" H 8405 2577 50  0000 C CNN
+F 2 "" H 8400 2750 50  0001 C CNN
+F 3 "" H 8400 2750 50  0001 C CNN
+	1    8400 2750
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	8300 850  8400 850 
+Connection ~ 8300 850 
+Wire Wire Line
+	8750 1250 8750 1350
+Wire Wire Line
+	8750 1350 8400 1350
+$Comp
+L Switch:SW_Push SW2
+U 1 1 619AC049
+P 8400 2250
+F 0 "SW2" H 8400 2400 50  0000 C CNN
+F 1 "Boot Internal" H 8400 2150 50  0000 C CNN
+F 2 "Button_Switch_THT:SW_PUSH_6mm" H 8400 2450 50  0001 C CNN
+F 3 "~" H 8400 2450 50  0001 C CNN
+	1    8400 2250
+	0    -1   1    0   
+$EndComp
+Wire Wire Line
+	8400 1350 8400 1200
+Wire Wire Line
+	8400 850  8400 900 
+$Comp
+L Device:R R9
+U 1 1 619114A7
+P 8400 1050
+F 0 "R9" V 8350 850 50  0000 C CNN
+F 1 "10K" V 8400 1050 50  0000 C CNN
+F 2 "Resistor_SMD:R_1206_3216Metric" V 8330 1050 50  0001 C CNN
+F 3 "~" H 8400 1050 50  0001 C CNN
+F 4 "C17902" V 8400 1050 50  0001 C CNN "LCSC"
+	1    8400 1050
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	8400 1350 8400 2050
+Connection ~ 8400 1350
+Wire Wire Line
+	8400 2450 8400 2750
+Text Label 1200 7250 0    50   ~ 0
+5V_IN
 $EndSCHEMATC
