@@ -159,7 +159,7 @@ U 1 1 616B1E7B
 P 1750 2000
 F 0 "J1" H 1750 3165 50  0000 C CNN
 F 1 "XTA_Connector" H 1750 3074 50  0000 C CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_2x20_P2.54mm_Horizontal" H 1750 3050 50  0001 C CNN
+F 2 "Connector_IDC:IDC-Header_2x20_P2.54mm_Horizontal" H 1750 3050 50  0001 C CNN
 F 3 "" H 1750 3050 50  0001 C CNN
 	1    1750 2000
 	1    0    0    -1  
@@ -183,7 +183,7 @@ L 00Custom:RPI_PICO U5
 U 1 1 616E2BFC
 P 9200 4450
 F 0 "U5" H 9200 5615 50  0000 C CNN
-F 1 "RPI_PICO" H 9200 5524 50  0000 C CNN
+F 1 "Raspberry Pi Pico" H 9200 5524 50  0000 C CNN
 F 2 "Pico:RPi_Pico_SMD_TH" H 9200 5450 50  0001 C CNN
 F 3 "" H 9200 5450 50  0001 C CNN
 	1    9200 4450
@@ -539,10 +539,10 @@ F 4 "C17909" V 6700 5400 50  0001 C CNN "LCSC"
 	0    1    1    0   
 $EndComp
 $Comp
-L Connector_Generic:Conn_01x02 J4
+L Connector_Generic:Conn_01x02 J3
 U 1 1 61901414
 P 7150 5300
-F 0 "J4" H 7230 5292 50  0000 L CNN
+F 0 "J3" H 7230 5292 50  0000 L CNN
 F 1 "LED" H 7230 5201 50  0000 L CNN
 F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Horizontal" H 7150 5300 50  0001 C CNN
 F 3 "~" H 7150 5300 50  0001 C CNN
@@ -674,16 +674,16 @@ Wire Wire Line
 Wire Wire Line
 	6250 5750 6250 5650
 Text GLabel 9900 5450 2    50   Input ~ 0
-SD_DO
+SPI_RX
 Text GLabel 9900 5050 2    50   Input ~ 0
-SD_DI
+SPI_TX
 Text GLabel 9900 5150 2    50   Input ~ 0
-SD_SCK
+SPI_SCK
 $Comp
-L Connector_Generic:Conn_01x06 J5
+L Connector_Generic:Conn_01x06 J6
 U 1 1 61700DAF
 P 9100 6300
-F 0 "J5" V 8972 6580 50  0000 L CNN
+F 0 "J6" V 8972 6580 50  0000 L CNN
 F 1 "Debug" V 9063 6580 50  0000 L CNN
 F 2 "Connector_PinHeader_2.54mm:PinHeader_1x06_P2.54mm_Vertical" H 9100 6300 50  0001 C CNN
 F 3 "~" H 9100 6300 50  0001 C CNN
@@ -1167,10 +1167,10 @@ Wire Wire Line
 Wire Wire Line
 	8600 3550 8700 3550
 $Comp
-L Connector_Generic:Conn_01x04 J3
+L Connector_Generic:Conn_01x04 J2
 U 1 1 618296A7
 P 850 7050
-F 0 "J3" H 768 7367 50  0000 C CNN
+F 0 "J2" H 768 7367 50  0000 C CNN
 F 1 "XTA Power" H 768 7276 50  0000 C CNN
 F 2 "w_conn_pc:conn_hdd_15-24-4441" H 850 7050 50  0001 C CNN
 F 3 "~" H 850 7050 50  0001 C CNN
@@ -1194,11 +1194,11 @@ IRQ_SELECT
 Text GLabel 8500 3950 0    50   Input ~ 0
 SD1_CS
 $Comp
-L Connector_Generic:Conn_01x06 J2
+L 00Custom:SD_Board J4
 U 1 1 61736542
 P 3450 1450
-F 0 "J2" V 3322 1730 50  0000 L CNN
-F 1 "SD0" V 3413 1730 50  0000 L CNN
+F 0 "J4" H 3450 1850 50  0000 L CNN
+F 1 "SD0" H 3450 1750 50  0000 L CNN
 F 2 "00Common:SD_Board" H 3450 1450 50  0001 C CNN
 F 3 "~" H 3450 1450 50  0001 C CNN
 	1    3450 1450
@@ -1220,13 +1220,13 @@ Wire Wire Line
 Wire Wire Line
 	3150 1250 3250 1250
 Text GLabel 3250 1450 0    50   Input ~ 0
-SD_DO
+SPI_TX
 Text GLabel 3250 1350 0    50   Input ~ 0
 SD0_CS
 Text GLabel 3250 1550 0    50   Input ~ 0
-SD_SCK
+SPI_SCK
 Text GLabel 3250 1650 0    50   Input ~ 0
-SD_DI
+SPI_RX
 $Comp
 L power:GND #PWR0103
 U 1 1 61740C37
@@ -1243,11 +1243,11 @@ Wire Wire Line
 Wire Wire Line
 	3150 1750 3150 1850
 $Comp
-L Connector_Generic:Conn_01x06 J6
+L 00Custom:SD_Board J5
 U 1 1 61749C73
 P 3450 2700
-F 0 "J6" V 3322 2980 50  0000 L CNN
-F 1 "SD1" V 3413 2980 50  0000 L CNN
+F 0 "J5" H 3450 3100 50  0000 L CNN
+F 1 "SD1" H 3450 3000 50  0000 L CNN
 F 2 "00Common:SD_Board" H 3450 2700 50  0001 C CNN
 F 3 "~" H 3450 2700 50  0001 C CNN
 	1    3450 2700
@@ -1269,13 +1269,13 @@ Wire Wire Line
 Wire Wire Line
 	3150 2500 3250 2500
 Text GLabel 3250 2700 0    50   Input ~ 0
-SD_DO
+SPI_TX
 Text GLabel 3250 2600 0    50   Input ~ 0
 SD1_CS
 Text GLabel 3250 2800 0    50   Input ~ 0
-SD_SCK
+SPI_SCK
 Text GLabel 3250 2900 0    50   Input ~ 0
-SD_DI
+SPI_RX
 $Comp
 L power:GND #PWR0105
 U 1 1 6174A2B9
@@ -1294,18 +1294,18 @@ Wire Wire Line
 $Comp
 L power:GND #PWR0106
 U 1 1 6175F5F5
-P 9450 5850
-F 0 "#PWR0106" H 9450 5600 50  0001 C CNN
-F 1 "GND" H 9455 5677 50  0000 C CNN
-F 2 "" H 9450 5850 50  0001 C CNN
-F 3 "" H 9450 5850 50  0001 C CNN
-	1    9450 5850
+P 9600 5850
+F 0 "#PWR0106" H 9600 5600 50  0001 C CNN
+F 1 "GND" H 9605 5677 50  0000 C CNN
+F 2 "" H 9600 5850 50  0001 C CNN
+F 3 "" H 9600 5850 50  0001 C CNN
+	1    9600 5850
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	9200 5750 9450 5750
+	9200 5750 9600 5750
 Wire Wire Line
-	9450 5750 9450 5850
+	9600 5750 9600 5850
 Text GLabel 8050 3950 0    50   Input ~ 0
 CFG_LATCH
 $Comp
@@ -1670,4 +1670,8 @@ Wire Wire Line
 	8400 2450 8400 2750
 Text Label 1200 7250 0    50   ~ 0
 5V_IN
+Text Label 9300 6100 1    30   ~ 0
+SWDIO
+Text Label 9100 6100 1    30   ~ 0
+SWCLK
 $EndSCHEMATC
