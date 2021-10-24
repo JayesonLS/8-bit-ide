@@ -341,9 +341,9 @@ Text GLabel 9900 4150 2    39   Input ~ 0
 ~DRQ~_3V3
 Text GLabel 9900 4350 2    39   Input ~ 0
 ~IRQ~_3V3
-Text GLabel 9900 5350 2    39   Input ~ 0
-~IOR~_3V3
 Text GLabel 9900 4950 2    39   Input ~ 0
+~IOR~_3V3
+Text GLabel 9900 5350 2    39   Input ~ 0
 ~IOW~_3V3
 Text GLabel 9900 4850 2    39   Input ~ 0
 ~RESET~_3V3
