@@ -329,7 +329,7 @@ Text GLabel 8500 5150 0    50   Input ~ 0
 A1_3V3
 Wire Wire Line
 	8500 4650 8700 4650
-Text Notes 7000 6850 0    39   ~ 0
+Text Notes 7000 6950 0    39   ~ 0
 On GP26-28, there is a clamp diode\nto 3.3v, should one be needed.
 Wire Wire Line
 	8500 4850 8700 4850
@@ -1140,8 +1140,8 @@ Wire Wire Line
 	8050 3850 8150 3850
 Text GLabel 8050 3850 0    50   Input ~ 0
 SD0_CS
-Text Notes 7000 6700 0    39   ~ 0
-The PICO already has a 47uF cap on both the 5v and 3.3v\nside of the regulator, so none is included in this design.
+Text Notes 7000 6750 0    39   ~ 0
+The PICO already has a 47uF cap on both the 5v and 3.3v\nside of the regulator, so no bulk capacitor is\nincluded in this design.
 Text GLabel 8050 3550 0    50   Input ~ 0
 CFG_DATA
 Text GLabel 8300 3350 0    50   Input ~ 0
@@ -1674,4 +1674,8 @@ Text Label 9300 6100 1    30   ~ 0
 SWDIO
 Text Label 9100 6100 1    30   ~ 0
 SWCLK
+Text Notes 2300 5800 0    118  ~ 0
+TODO: A-B needs to be \ntied high, or signal \ndirections reversed.
+Text Notes 600  4850 0    118  ~ 0
+TODO: Signal directions \nneed to be reversed. Also\nadd pulldown to DATA_DIR\nto be sure of direction on\npower-up.
 $EndSCHEMATC
