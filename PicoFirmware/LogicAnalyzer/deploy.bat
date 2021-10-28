@@ -1,1 +1,1 @@
-copy %~dp0\build\8bit_ide_drive.uf2 g:\
+copy %~dp0\build\logic_analyzer.uf2 g:\

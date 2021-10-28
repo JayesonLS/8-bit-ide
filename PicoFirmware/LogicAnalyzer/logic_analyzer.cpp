@@ -33,7 +33,7 @@ int main()
 
         pio_sm_put_blocking(pio, outSm, ledValue); 
         
-//        sleep_ms(100);
+        sleep_ms(100);
     }
 
     return 0;

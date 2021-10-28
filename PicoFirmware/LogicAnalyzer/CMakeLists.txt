@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.12)
 # Pull in SDK (must be before project)
 include(pico_sdk_import.cmake)
 
-project(8bit_ide_drive C CXX ASM)
+project(logic_analyzer C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
@@ -17,21 +17,21 @@ add_compile_options(-Wall
         )
 
 if (TARGET tinyusb_device)
-        add_executable(8bit_ide_drive
-                8bit_ide_drive.cpp
+        add_executable(logic_analyzer
+                logic_analyzer.cpp
                 )
 
-        pico_generate_pio_header(8bit_ide_drive ${CMAKE_CURRENT_LIST_DIR}/isaout.pio)
+        pico_generate_pio_header(logic_analyzer ${CMAKE_CURRENT_LIST_DIR}/isaout.pio)
                 
         # Pull in our pico_stdlib which aggregates commonly used features
-        target_link_libraries(8bit_ide_drive pico_stdlib hardware_pio)
+        target_link_libraries(logic_analyzer pico_stdlib hardware_pio)
     
         # enable usb output, disable uart output
-        pico_enable_stdio_usb(8bit_ide_drive 1)
-        pico_enable_stdio_uart(8bit_ide_drive 0)
+        pico_enable_stdio_usb(logic_analyzer 1)
+        pico_enable_stdio_uart(logic_analyzer 0)
     
         # create map/bin/hex/uf2 file etc.
-        pico_add_extra_outputs(8bit_ide_drive)
+        pico_add_extra_outputs(logic_analyzer)
 elseif(PICO_ON_DEVICE)
-        message(WARNING "not building 8bit_ide_drive because TinyUSB submodule is not initialized in the SDK")
+        message(WARNING "not building logic_analyzer because TinyUSB submodule is not initialized in the SDK")
 endif()
