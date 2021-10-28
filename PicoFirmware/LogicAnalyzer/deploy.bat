@@ -1,0 +1,1 @@
+copy %~dp0\build\8bit_ide_drive.uf2 g:\
