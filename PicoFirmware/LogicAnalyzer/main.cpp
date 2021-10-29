@@ -81,7 +81,7 @@ int main()
     logicAnalyzer.StartSampling(OVERCLOCK_TYPE);
 
     // Output incrementing values continuously until the sampling is complete.
-    for (int ledValue = 1289; ; ledValue++)
+    for (int ledValue = 0; ; ledValue++)
     {
         IsaOutOutputValue(isaOutPio, isaOutSm, ledValue);
         
