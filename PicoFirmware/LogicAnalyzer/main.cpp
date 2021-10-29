@@ -22,7 +22,7 @@
 const size_t CAPTURE_MAX_SAMPLES = 24 * 1024;
 const uint CAPTURE_START_PIN = 0;
 const uint CAPTURE_PIN_COUNT = 29;
-const bool OVERCLOCK = false;
+const LogicAnalyzer::CpuClock OVERCLOCK_TYPE = LogicAnalyzer::CpuClock::Standard;
 
 void InitIsaOut(PIO pio, uint &isaOutSm)
 {
@@ -78,7 +78,7 @@ int main()
     InitIsaOut(isaOutPio, isaOutSm);
 
     logicAnalyzer.InitSampling();
-    logicAnalyzer.StartSampling(OVERCLOCK);
+    logicAnalyzer.StartSampling(OVERCLOCK_TYPE);
 
     // Output incrementing values continuously until the sampling is complete.
     for (int ledValue = 1289; ; ledValue++)

@@ -22,6 +22,13 @@
 class LogicAnalyzer
 {
 public:
+    enum CpuClock
+    {
+        Standard, // 125 MHz.
+        Overclock2x,
+        Overclock3x // Must execute from ram or make compile time changes for /4 flash clock speed.
+    };
+
     struct Sample
     {
         uint bits;
@@ -33,7 +40,7 @@ public:
 
     void InitPins(); // We allow pin init early to allow other state machines to change the configuration of the pins.
     void InitSampling();
-    void StartSampling(bool overclock);
+    void StartSampling(CpuClock cpuClock);
     void StopSampling();
     
     bool IsSamplingComplete();
@@ -43,9 +50,10 @@ public:
 private:
     void InitStateMachines();
     void InitDma();
-    void SetCpuClock(bool overclock);
+    void SetCpuClock(CpuClock cpuClock);
 
     bool initialized = false;
+    CpuClock currentClock = CpuClock::Standard;
 
     std::vector<Sample> samples;
 

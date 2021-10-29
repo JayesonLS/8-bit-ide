@@ -56,9 +56,9 @@ void LogicAnalyzer::InitSampling()
     initialized = true;
 }
 
-void LogicAnalyzer::StartSampling(bool overclock)
+void LogicAnalyzer::StartSampling(CpuClock cpuClock)
 {
-    SetCpuClock(overclock);
+    SetCpuClock(cpuClock);
 
     // Clear all fifos.
 //    pio_sm_clear_fifos(pio, removeDupesSm);
@@ -76,7 +76,7 @@ void LogicAnalyzer::StartSampling(bool overclock)
 
 void LogicAnalyzer::StopSampling()
 {
-    SetCpuClock(false);
+    SetCpuClock(CpuClock::Standard);
 
     // Stop DMA.
     dma_channel_abort(filteredToMemDmaChan);
@@ -147,16 +147,39 @@ static inline void channel_config_set_priority(dma_channel_config *c, bool high)
     }
 }
 
-/*private */ void LogicAnalyzer::SetCpuClock(bool overclock)
+/*private */ void LogicAnalyzer::SetCpuClock(CpuClock cpuClock)
 {
-    if (overclock)
+    const uint32_t standardClockKHz = 125000;
+
+    switch (cpuClock)
     {
-        vreg_set_voltage(VREG_VOLTAGE_1_15);
-        set_sys_clock_khz(250000, true);
+        case CpuClock::Standard:
+            set_sys_clock_khz(standardClockKHz, true);
+            vreg_set_voltage(VREG_VOLTAGE_DEFAULT);
+            break;
+
+        case CpuClock::Overclock2x:
+            if (currentClock == CpuClock::Overclock3x)
+            {
+                set_sys_clock_khz(standardClockKHz * 2, true);
+                vreg_set_voltage(VREG_VOLTAGE_1_15);
+            }
+            else
+            {
+                vreg_set_voltage(VREG_VOLTAGE_1_15);
+                set_sys_clock_khz(standardClockKHz * 2, true);
+            }
+            break;
+        case CpuClock::Overclock3x:
+            vreg_set_voltage(VREG_VOLTAGE_1_30);
+            set_sys_clock_khz(standardClockKHz * 3, true);
+            break;
+
+        default:
+            panic("Invalid CpuClock enum");
+            break;
     }
-    else
-    {
-        set_sys_clock_khz(125000, true);
-        vreg_set_voltage(VREG_VOLTAGE_DEFAULT);
-    }
+
+    currentClock = cpuClock;
 }
+
