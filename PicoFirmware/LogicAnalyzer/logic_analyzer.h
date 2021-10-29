@@ -17,6 +17,7 @@
 
 #include <pico/stdlib.h>
 #include <hardware/pio.h>
+#include <vector>
 
 class LogicAnalyzer
 {
@@ -28,20 +29,22 @@ public:
     };
 
     LogicAnalyzer(size_t bufferSizeInts, PIO pio, uint captureStartPin, uint capturePinCount);
+    ~LogicAnalyzer();
 
-    void IntializePins(); // We allow pin init early to allow other state machines to change the configuration of the pins.
-    void InitializeSampling();
+    void InitPins(); // We allow pin init early to allow other state machines to change the configuration of the pins.
+    void InitSampling();
     void StartSampling();
     void StopSampling();
 
+    const std::vector<Sample> &Samples() { return samples; }
+
 private:
-    void IntializeStateMachines();
-    void InitializeDma();
+    void InitStateMachines();
+    void InitDma();
 
     bool initialized = false;
 
-    size_t maxSampleCount = 0xAA55; 
-    Sample *buffer = nullptr; 
+    std::vector<Sample> samples;
 
     uint startPin = 0xAA55;
     uint pinCount = 0xAA55;

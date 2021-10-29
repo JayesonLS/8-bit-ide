@@ -19,6 +19,7 @@
 #include "logic_analyzer.h"
 #include "isaout.pio.h"
 
+const size_t CAPTURE_MAX_SAMPLES = 24 * 1024;
 const uint CAPTURE_START_PIN = 0;
 const uint CAPTURE_PIN_COUNT = 29;
 
@@ -38,9 +39,14 @@ int main()
 {
     stdio_init_all();
 
+    LogicAnalyzer logicAnalyzer(CAPTURE_MAX_SAMPLES, pio1, CAPTURE_START_PIN, CAPTURE_PIN_COUNT);
+    logicAnalyzer.InitPins();
+
     PIO isaOutPio = pio0;
     uint isaOutSm = 0xAA55;
     InitIsaOut(isaOutPio, isaOutSm);
+
+    logicAnalyzer.InitSampling();
 
     for (int ledValue = 0; ; ledValue++)
     {
@@ -48,7 +54,7 @@ int main()
 
         IsaOutOutputValue(isaOutPio, isaOutSm, ledValue);
         
-        sleep_ms(100);
+//        sleep_ms(100);
     }
 
     return 0;

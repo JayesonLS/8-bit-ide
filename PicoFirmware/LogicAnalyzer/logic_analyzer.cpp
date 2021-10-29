@@ -18,11 +18,11 @@
 
 
 LogicAnalyzer::LogicAnalyzer(size_t maxSampleCount, PIO pio, uint captureStartPin, uint capturePinCount)
-    : maxSampleCount(maxSampleCount)
-    , startPin(captureStartPin)
+    : startPin(captureStartPin)
     , pinCount(capturePinCount)
     , pio(pio)
 {
+    samples.resize(maxSampleCount);
 }   
 
 LogicAnalyzer::~LogicAnalyzer()
@@ -32,15 +32,12 @@ LogicAnalyzer::~LogicAnalyzer()
         StopSampling();
     }
 
-    // Should really free up PIO and DMA resources but this destructor will probably never be used.
-
-    delete [] buffer;
-    buffer = nullptr;
+    // Should really free up PIO and DMA resources but this class unlikley to be used in a way that needs it.
 }
 
 // We do this early to allow other state machines to change the
 // configuration of the pins.
-void LogicAnalyzer::IntializePins()
+void LogicAnalyzer::InitPins()
 {
     for (uint i = 0; i < pinCount; i++)
     {
@@ -48,12 +45,10 @@ void LogicAnalyzer::IntializePins()
     }
 }
 
-void LogicAnalyzer::InitializeSampling()
+void LogicAnalyzer::InitSampling()
 {
-    buffer = new Sample[maxSampleCount];
-
-    IntializeStateMachines();
-    InitializeDma();
+    InitStateMachines();
+    InitDma();
 
     initialized = true;
 }
@@ -78,7 +73,7 @@ void LogicAnalyzer::StopSampling()
     // TODO: Stop DMA.
 }
 
-/*private */ void LogicAnalyzer::IntializeStateMachines()
+/*private */ void LogicAnalyzer::InitStateMachines()
 {
     // Sample state machine.
     {
@@ -98,7 +93,7 @@ void LogicAnalyzer::StopSampling()
     }
 }
 
-/*private */ void LogicAnalyzer::InitializeDma()
+/*private */ void LogicAnalyzer::InitDma()
 {
 
 }
