@@ -36,7 +36,7 @@ public:
     void StartSampling(bool overclock);
     void StopSampling();
     
-    bool SamplingComplete();
+    bool IsSamplingComplete();
 
     const std::vector<Sample> &GetSamples() const { return samples; }
 
@@ -56,5 +56,8 @@ private:
     uint sampleSm = 0xAA55;
     uint sampleProgramOffset = 0xAA55; 
     uint removeDupesSm = 0xAA55;
-    uint removeDupesProgramOffset = 0xAA55; 
+    uint removeDupesProgramOffset = 0xAA55;
+
+    uint filteredToMemDmaChan = 0xAA55;
+
 };

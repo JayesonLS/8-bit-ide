@@ -14,7 +14,9 @@
 // along with this program.If not, see < https://www.gnu.org/licenses/>.
 
 #include <random>
-#include "hardware/vreg.h"
+#include <hardware/vreg.h>
+#include <hardware/dma.h>
+#include <hardware/structs/bus_ctrl.h>
 #include "logic_analyzer.h"
 #include "logic_analyzer.pio.h"
 
@@ -58,10 +60,14 @@ void LogicAnalyzer::StartSampling(bool overclock)
 {
     SetCpuClock(overclock);
 
-    // TODO: Clear all fifos.
+    // Clear all fifos.
+//    pio_sm_clear_fifos(pio, removeDupesSm);
+    pio_sm_clear_fifos(pio, sampleSm);
 
-    // TODO: Start DMAs.
+    // Start DMAs.
+    dma_channel_start(filteredToMemDmaChan);
 
+    // Enable state machines.
     // pio_sm_set_enabled(pio, removeDupesSm, true);
 
     // Last step: enable the sampling state machine.
@@ -72,27 +78,19 @@ void LogicAnalyzer::StopSampling()
 {
     SetCpuClock(false);
 
+    // Stop DMA.
+    dma_channel_abort(filteredToMemDmaChan);
+
     pio_sm_set_enabled(pio, sampleSm, false);
 //    pio_sm_set_enabled(pio, removeDupesSm, false);
-
-    // TODO: Stop DMA.
 }
 
-bool LogicAnalyzer::SamplingComplete()
+bool LogicAnalyzer::IsSamplingComplete()
 { 
-    // TODO: Implement properly.
-
-    for (size_t i = 0; i < samples.size(); i++)
-    {
-        samples[i].bits = pio_sm_get_blocking(pio, sampleSm); 
-        samples[i].timeStamp = pio_sm_get_blocking(pio, sampleSm); ;
-    }
-
-    StopSampling();
-
-    return true;
+    // We are complete if the memory buffer is full / 
+    // the dma to the memory buffer has completed.
+    return !dma_channel_is_busy(filteredToMemDmaChan);
 }
-
 
 /*private */ void LogicAnalyzer::InitStateMachines()
 {
@@ -116,9 +114,38 @@ bool LogicAnalyzer::SamplingComplete()
     }
 }
 
+// This was not implemented in the Pico SDK. Perhaps it does not work properly?
+static inline void channel_config_set_priority(dma_channel_config *c, bool high)
+{
+    c->ctrl = high ? (c->ctrl | DMA_CH0_CTRL_TRIG_HIGH_PRIORITY_BITS) : (c->ctrl & ~DMA_CH0_CTRL_TRIG_HIGH_PRIORITY_BITS);
+}
+
 /*private */ void LogicAnalyzer::InitDma()
 {
+    // Give bus priority to DMA.
+    bus_ctrl_hw->priority = BUSCTRL_BUS_PRIORITY_DMA_W_BITS | BUSCTRL_BUS_PRIORITY_DMA_R_BITS;
 
+    // DMA from final state machine to memory.
+    {
+        filteredToMemDmaChan = dma_claim_unused_channel(true);
+
+        dma_channel_config c = dma_channel_get_default_config(filteredToMemDmaChan);
+        channel_config_set_read_increment(&c, false);
+        channel_config_set_write_increment(&c, true);
+        channel_config_set_dreq(&c, pio_get_dreq(pio, sampleSm, false));
+//        channel_config_set_priority(&c, true);
+
+        uint sampleSizeInLongs = samples.size() * (sizeof(Sample) / sizeof(uint32_t));
+        printf("%08X %08X %08X %08X %08X\n", samples.size(), sizeof(uint32_t), sizeof(Sample), (sizeof(Sample) / sizeof(uint32_t)), sampleSizeInLongs);
+        dma_channel_configure(
+            filteredToMemDmaChan, 
+            &c,
+            &samples[0],
+            &pio->rxf[sampleSm],
+            sampleSizeInLongs,
+            false                
+        );
+    }
 }
 
 /*private */ void LogicAnalyzer::SetCpuClock(bool overclock)

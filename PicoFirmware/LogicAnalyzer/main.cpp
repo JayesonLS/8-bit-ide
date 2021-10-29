@@ -67,6 +67,9 @@ int main()
 {
     stdio_init_all();
 
+    DelayAndBlink(2);
+    printf("Starting...\n");
+
     LogicAnalyzer logicAnalyzer(pio1, CAPTURE_START_PIN, CAPTURE_PIN_COUNT, CAPTURE_MAX_SAMPLES);
     logicAnalyzer.InitPins();
 
@@ -75,19 +78,14 @@ int main()
     InitIsaOut(isaOutPio, isaOutSm);
 
     logicAnalyzer.InitSampling();
-
-    DelayAndBlink(2);
-
     logicAnalyzer.StartSampling(OVERCLOCK);
 
+    // Output incrementing values continuously until the sampling is complete.
     for (int ledValue = 1289; ; ledValue++)
     {
-        //printf("8bit_ide_drive heartbeat.\n");
-
         IsaOutOutputValue(isaOutPio, isaOutSm, ledValue);
         
-//        sleep_ms(100);
-        if (logicAnalyzer.SamplingComplete())
+        if (logicAnalyzer.IsSamplingComplete())
         {
             break;
         }
