@@ -22,6 +22,7 @@
 const size_t CAPTURE_MAX_SAMPLES = 24 * 1024;
 const uint CAPTURE_START_PIN = 0;
 const uint CAPTURE_PIN_COUNT = 29;
+const bool OVERCLOCK = false;
 
 void InitIsaOut(PIO pio, uint &isaOutSm)
 {
@@ -74,9 +75,10 @@ int main()
     InitIsaOut(isaOutPio, isaOutSm);
 
     logicAnalyzer.InitSampling();
-    logicAnalyzer.StartSampling();
 
     DelayAndBlink(2);
+
+    logicAnalyzer.StartSampling(OVERCLOCK);
 
     for (int ledValue = 1289; ; ledValue++)
     {

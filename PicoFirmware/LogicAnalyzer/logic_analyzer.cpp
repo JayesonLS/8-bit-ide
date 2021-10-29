@@ -14,6 +14,7 @@
 // along with this program.If not, see < https://www.gnu.org/licenses/>.
 
 #include <random>
+#include "hardware/vreg.h"
 #include "logic_analyzer.h"
 #include "logic_analyzer.pio.h"
 
@@ -53,8 +54,10 @@ void LogicAnalyzer::InitSampling()
     initialized = true;
 }
 
-void LogicAnalyzer::StartSampling()
+void LogicAnalyzer::StartSampling(bool overclock)
 {
+    SetCpuClock(overclock);
+
     // TODO: Clear all fifos.
 
     // TODO: Start DMAs.
@@ -67,6 +70,8 @@ void LogicAnalyzer::StartSampling()
 
 void LogicAnalyzer::StopSampling()
 {
+    SetCpuClock(false);
+
     pio_sm_set_enabled(pio, sampleSm, false);
 //    pio_sm_set_enabled(pio, removeDupesSm, false);
 
@@ -101,6 +106,7 @@ bool LogicAnalyzer::SamplingComplete()
         pio_sm_config c = la_sample_program_get_default_config(sampleProgramOffset);
         sm_config_set_in_pins(&c, startPin);
         sm_config_set_in_shift(&c, true, true, 32);
+        sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_RX);
         pio_sm_init(pio, sampleSm, sampleProgramOffset, &c);
     }
 
@@ -113,4 +119,18 @@ bool LogicAnalyzer::SamplingComplete()
 /*private */ void LogicAnalyzer::InitDma()
 {
 
+}
+
+/*private */ void LogicAnalyzer::SetCpuClock(bool overclock)
+{
+    if (overclock)
+    {
+        vreg_set_voltage(VREG_VOLTAGE_1_15);
+        set_sys_clock_khz(250000, true);
+    }
+    else
+    {
+        set_sys_clock_khz(125000, true);
+        vreg_set_voltage(VREG_VOLTAGE_DEFAULT);
+    }
 }

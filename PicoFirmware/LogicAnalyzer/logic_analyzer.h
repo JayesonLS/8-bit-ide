@@ -33,7 +33,7 @@ public:
 
     void InitPins(); // We allow pin init early to allow other state machines to change the configuration of the pins.
     void InitSampling();
-    void StartSampling();
+    void StartSampling(bool overclock);
     void StopSampling();
     
     bool SamplingComplete();
@@ -43,6 +43,7 @@ public:
 private:
     void InitStateMachines();
     void InitDma();
+    void SetCpuClock(bool overclock);
 
     bool initialized = false;
 
