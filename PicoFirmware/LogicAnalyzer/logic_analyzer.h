@@ -35,8 +35,10 @@ public:
     void InitSampling();
     void StartSampling();
     void StopSampling();
+    
+    bool SamplingComplete();
 
-    const std::vector<Sample> &Samples() { return samples; }
+    const std::vector<Sample> &Samples() const { return samples; }
 
 private:
     void InitStateMachines();

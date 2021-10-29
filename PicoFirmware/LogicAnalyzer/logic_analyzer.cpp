@@ -68,10 +68,18 @@ void LogicAnalyzer::StartSampling()
 void LogicAnalyzer::StopSampling()
 {
     pio_sm_set_enabled(pio, sampleSm, false);
-    pio_sm_set_enabled(pio, removeDupesSm, false);
+//    pio_sm_set_enabled(pio, removeDupesSm, false);
 
     // TODO: Stop DMA.
 }
+
+bool LogicAnalyzer::SamplingComplete()
+{
+    StopSampling();
+
+    return true;
+}
+
 
 /*private */ void LogicAnalyzer::InitStateMachines()
 {

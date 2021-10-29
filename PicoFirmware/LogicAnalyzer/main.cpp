@@ -35,6 +35,29 @@ void IsaOutOutputValue(PIO pio, uint isaOutSm, uint value)
     pio_sm_put_blocking(pio, isaOutSm, value); 
 }
 
+void OutputSamples(const LogicAnalyzer &logicAnalyzer)
+{
+
+}
+
+void BlinkLedForever()
+{
+#ifndef PICO_DEFAULT_LED_PIN
+#warning blink requires a board with a regular LED
+#else
+    const uint LED_PIN = PICO_DEFAULT_LED_PIN;
+    gpio_init(LED_PIN);
+    gpio_set_dir(LED_PIN, GPIO_OUT);
+    while (true)
+    {
+        gpio_put(LED_PIN, 1);
+        sleep_ms(500);
+        gpio_put(LED_PIN, 0);
+        sleep_ms(500);
+    }
+#endif
+}
+
 int main()
 {
     stdio_init_all();
@@ -47,15 +70,26 @@ int main()
     InitIsaOut(isaOutPio, isaOutSm);
 
     logicAnalyzer.InitSampling();
+    logicAnalyzer.StartSampling();
 
-    for (int ledValue = 0; ; ledValue++)
+    for (int ledValue = 1289; ; ledValue++)
     {
         //printf("8bit_ide_drive heartbeat.\n");
 
         IsaOutOutputValue(isaOutPio, isaOutSm, ledValue);
         
 //        sleep_ms(100);
+        if (logicAnalyzer.SamplingComplete())
+        {
+            break;
+        }
     }
+
+    logicAnalyzer.StopSampling();
+
+    OutputSamples(logicAnalyzer);
+
+    BlinkLedForever(); 
 
     return 0;
 }
