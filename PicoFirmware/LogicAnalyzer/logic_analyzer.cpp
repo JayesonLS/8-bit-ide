@@ -136,7 +136,6 @@ static inline void channel_config_set_priority(dma_channel_config *c, bool high)
 //        channel_config_set_priority(&c, true);
 
         uint sampleSizeInLongs = samples.size() * (sizeof(Sample) / sizeof(uint32_t));
-        printf("%08X %08X %08X %08X %08X\n", samples.size(), sizeof(uint32_t), sizeof(Sample), (sizeof(Sample) / sizeof(uint32_t)), sampleSizeInLongs);
         dma_channel_configure(
             filteredToMemDmaChan, 
             &c,
