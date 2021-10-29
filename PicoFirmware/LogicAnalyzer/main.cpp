@@ -19,7 +19,7 @@
 #include "logic_analyzer.h"
 #include "isaout.pio.h"
 
-const size_t CAPTURE_MAX_SAMPLES = 256;//24 * 1024;
+const size_t CAPTURE_MAX_SAMPLES = 24 * 1024;
 const uint CAPTURE_START_PIN = 0;
 const uint CAPTURE_PIN_COUNT = 29;
 
@@ -35,7 +35,7 @@ void IsaOutOutputValue(PIO pio, uint isaOutSm, uint value)
     pio_sm_put_blocking(pio, isaOutSm, value); 
 }
 
-void BlinkLedForever()
+void DelayAndBlink(uint seconds)
 {
 #ifndef PICO_DEFAULT_LED_PIN
 #warning blink requires a board with a regular LED
@@ -43,22 +43,22 @@ void BlinkLedForever()
     const uint LED_PIN = PICO_DEFAULT_LED_PIN;
     gpio_init(LED_PIN);
     gpio_set_dir(LED_PIN, GPIO_OUT);
-    while (true)
+    do
     {
         gpio_put(LED_PIN, 1);
         sleep_ms(500);
         gpio_put(LED_PIN, 0);
         sleep_ms(500);
-    }
+    } while (--seconds != 0);
 #endif
 }
 
 void OutputSamples(const LogicAnalyzer &logicAnalyzer)
 {
-    auto samples = logicAnalyzer.GetSamples();
+    const std::vector<LogicAnalyzer::Sample>& samples = logicAnalyzer.GetSamples();
     for (size_t i = 0; i < samples.size(); i++)
     {
-        printf("Sample: %08X %08X\n", samples[i].timeStamp, samples[i].bits);
+        printf("Sample: %08X %08X\n", -samples[i].timeStamp, samples[i].bits);
     }
 }
 
@@ -66,7 +66,7 @@ int main()
 {
     stdio_init_all();
 
-    LogicAnalyzer logicAnalyzer(CAPTURE_MAX_SAMPLES, pio1, CAPTURE_START_PIN, CAPTURE_PIN_COUNT);
+    LogicAnalyzer logicAnalyzer(pio1, CAPTURE_START_PIN, CAPTURE_PIN_COUNT, CAPTURE_MAX_SAMPLES);
     logicAnalyzer.InitPins();
 
     PIO isaOutPio = pio0;
@@ -76,7 +76,7 @@ int main()
     logicAnalyzer.InitSampling();
     logicAnalyzer.StartSampling();
 
-    sleep_ms(2000);
+    DelayAndBlink(2);
 
     for (int ledValue = 1289; ; ledValue++)
     {
@@ -95,7 +95,7 @@ int main()
 
     OutputSamples(logicAnalyzer);
 
-    BlinkLedForever(); 
+    DelayAndBlink(0xFFFFFFFF); // Effectively forever.
 
     return 0;
 }

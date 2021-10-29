@@ -28,7 +28,7 @@ public:
         uint timeStamp;
     };
 
-    LogicAnalyzer(size_t bufferSizeInts, PIO pio, uint captureStartPin, uint capturePinCount);
+    LogicAnalyzer(PIO pio, uint captureStartPin, uint capturePinCount, size_t maxSampleCount);
     ~LogicAnalyzer();
 
     void InitPins(); // We allow pin init early to allow other state machines to change the configuration of the pins.

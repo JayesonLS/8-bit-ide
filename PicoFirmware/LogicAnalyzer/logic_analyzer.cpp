@@ -17,7 +17,7 @@
 #include "logic_analyzer.h"
 #include "logic_analyzer.pio.h"
 
-LogicAnalyzer::LogicAnalyzer(size_t maxSampleCount, PIO pio, uint captureStartPin, uint capturePinCount)
+LogicAnalyzer::LogicAnalyzer(PIO pio, uint captureStartPin, uint capturePinCount, size_t maxSampleCount)
     : startPin(captureStartPin)
     , pinCount(capturePinCount)
     , pio(pio)
@@ -77,11 +77,10 @@ bool LogicAnalyzer::SamplingComplete()
 { 
     // TODO: Implement properly.
 
-    std::mt19937 rand32;  
     for (size_t i = 0; i < samples.size(); i++)
     {
-        samples[i].bits = rand32();
-        samples[i].timeStamp = rand32();
+        samples[i].bits = pio_sm_get_blocking(pio, sampleSm); 
+        samples[i].timeStamp = pio_sm_get_blocking(pio, sampleSm); ;
     }
 
     StopSampling();
@@ -101,6 +100,7 @@ bool LogicAnalyzer::SamplingComplete()
 
         pio_sm_config c = la_sample_program_get_default_config(sampleProgramOffset);
         sm_config_set_in_pins(&c, startPin);
+        sm_config_set_in_shift(&c, true, true, 32);
         pio_sm_init(pio, sampleSm, sampleProgramOffset, &c);
     }
 
