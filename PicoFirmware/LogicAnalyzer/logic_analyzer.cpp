@@ -13,28 +13,92 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.If not, see < https://www.gnu.org/licenses/>.
 
-#include <stdio.h>
-#include "pico/stdlib.h"
-#include "hardware/pio.h"
-#include "isaout.pio.h"
+#include "logic_analyzer.h"
+#include "logic_analyzer.pio.h"
 
-int main()
+
+LogicAnalyzer::LogicAnalyzer(size_t maxSampleCount, PIO pio, uint captureStartPin, uint capturePinCount)
+    : maxSampleCount(maxSampleCount)
+    , startPin(captureStartPin)
+    , pinCount(capturePinCount)
+    , pio(pio)
 {
-    stdio_init_all();
+}   
 
-    PIO pio = pio0;
-    uint programOffset = pio_add_program(pio, &isaout_program);
-    uint outSm = pio_claim_unused_sm(pio, true);
-    isaout_program_init(pio, outSm, programOffset, 0, 8, 2, 10);
-
-    for (int ledValue = 0; ; ledValue++)
+LogicAnalyzer::~LogicAnalyzer()
+{
+    if (initialized)
     {
-        //printf("8bit_ide_drive heartbeat.\n");
-
-        pio_sm_put_blocking(pio, outSm, ledValue); 
-        
-        sleep_ms(100);
+        StopSampling();
     }
 
-    return 0;
+    // Should really free up PIO and DMA resources but this destructor will probably never be used.
+
+    delete [] buffer;
+    buffer = nullptr;
+}
+
+// We do this early to allow other state machines to change the
+// configuration of the pins.
+void LogicAnalyzer::IntializePins()
+{
+    for (uint i = 0; i < pinCount; i++)
+    {
+        pio_gpio_init(pio, startPin + i);
+    }
+}
+
+void LogicAnalyzer::InitializeSampling()
+{
+    buffer = new Sample[maxSampleCount];
+
+    IntializeStateMachines();
+    InitializeDma();
+
+    initialized = true;
+}
+
+void LogicAnalyzer::StartSampling()
+{
+    // TODO: Clear all fifos.
+
+    // TODO: Start DMAs.
+
+    // pio_sm_set_enabled(pio, removeDupesSm, true);
+
+    // Last step: enable the sampling state machine.
+    pio_sm_set_enabled(pio, sampleSm, true);
+}
+
+void LogicAnalyzer::StopSampling()
+{
+    pio_sm_set_enabled(pio, sampleSm, false);
+    pio_sm_set_enabled(pio, removeDupesSm, false);
+
+    // TODO: Stop DMA.
+}
+
+/*private */ void LogicAnalyzer::IntializeStateMachines()
+{
+    // Sample state machine.
+    {
+        sampleProgramOffset = pio_add_program(pio, &la_sample_program);
+        sampleSm = pio_claim_unused_sm(pio, true);
+
+        pio_sm_set_consecutive_pindirs(pio, sampleSm, startPin, pinCount, false);
+
+        pio_sm_config c = la_sample_program_get_default_config(sampleProgramOffset);
+        sm_config_set_in_pins(&c, startPin);
+        pio_sm_init(pio, sampleSm, sampleProgramOffset, &c);
+    }
+
+    // Remove-dupes state machine.
+    {
+
+    }
+}
+
+/*private */ void LogicAnalyzer::InitializeDma()
+{
+
 }

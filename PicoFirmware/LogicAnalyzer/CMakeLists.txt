@@ -18,10 +18,12 @@ add_compile_options(-Wall
 
 if (TARGET tinyusb_device)
         add_executable(logic_analyzer
+                main.cpp
                 logic_analyzer.cpp
                 )
 
         pico_generate_pio_header(logic_analyzer ${CMAKE_CURRENT_LIST_DIR}/isaout.pio)
+        pico_generate_pio_header(logic_analyzer ${CMAKE_CURRENT_LIST_DIR}/logic_analyzer.pio)
                 
         # Pull in our pico_stdlib which aggregates commonly used features
         target_link_libraries(logic_analyzer pico_stdlib hardware_pio)
