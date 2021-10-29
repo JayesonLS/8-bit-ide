@@ -19,7 +19,7 @@
 #include "logic_analyzer.h"
 #include "isaout.pio.h"
 
-const size_t CAPTURE_MAX_SAMPLES = 24 * 1024;
+const size_t CAPTURE_MAX_SAMPLES = 256;//24 * 1024;
 const uint CAPTURE_START_PIN = 0;
 const uint CAPTURE_PIN_COUNT = 29;
 
@@ -33,11 +33,6 @@ void InitIsaOut(PIO pio, uint &isaOutSm)
 void IsaOutOutputValue(PIO pio, uint isaOutSm, uint value)
 {
     pio_sm_put_blocking(pio, isaOutSm, value); 
-}
-
-void OutputSamples(const LogicAnalyzer &logicAnalyzer)
-{
-
 }
 
 void BlinkLedForever()
@@ -58,6 +53,15 @@ void BlinkLedForever()
 #endif
 }
 
+void OutputSamples(const LogicAnalyzer &logicAnalyzer)
+{
+    auto samples = logicAnalyzer.GetSamples();
+    for (size_t i = 0; i < samples.size(); i++)
+    {
+        printf("Sample: %08X %08X\n", samples[i].timeStamp, samples[i].bits);
+    }
+}
+
 int main()
 {
     stdio_init_all();
@@ -71,6 +75,8 @@ int main()
 
     logicAnalyzer.InitSampling();
     logicAnalyzer.StartSampling();
+
+    sleep_ms(2000);
 
     for (int ledValue = 1289; ; ledValue++)
     {

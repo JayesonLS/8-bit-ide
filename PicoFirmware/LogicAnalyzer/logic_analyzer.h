@@ -38,7 +38,7 @@ public:
     
     bool SamplingComplete();
 
-    const std::vector<Sample> &Samples() const { return samples; }
+    const std::vector<Sample> &GetSamples() const { return samples; }
 
 private:
     void InitStateMachines();

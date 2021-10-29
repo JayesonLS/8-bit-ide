@@ -13,9 +13,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.If not, see < https://www.gnu.org/licenses/>.
 
+#include <random>
 #include "logic_analyzer.h"
 #include "logic_analyzer.pio.h"
-
 
 LogicAnalyzer::LogicAnalyzer(size_t maxSampleCount, PIO pio, uint captureStartPin, uint capturePinCount)
     : startPin(captureStartPin)
@@ -74,7 +74,16 @@ void LogicAnalyzer::StopSampling()
 }
 
 bool LogicAnalyzer::SamplingComplete()
-{
+{ 
+    // TODO: Implement properly.
+
+    std::mt19937 rand32;  
+    for (size_t i = 0; i < samples.size(); i++)
+    {
+        samples[i].bits = rand32();
+        samples[i].timeStamp = rand32();
+    }
+
     StopSampling();
 
     return true;
