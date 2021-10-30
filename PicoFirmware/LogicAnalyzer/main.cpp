@@ -21,7 +21,7 @@
 
 const size_t CAPTURE_MAX_SAMPLES = 48 * 1024;
 const uint CAPTURE_START_PIN = 0;
-const uint CAPTURE_PIN_COUNT = 29;
+const uint CAPTURE_PIN_COUNT = 11;
 const LogicAnalyzer::CpuClock OVERCLOCK_TYPE = LogicAnalyzer::CpuClock::Standard;
 
 void InitIsaOut(PIO pio, uint &isaOutSm)

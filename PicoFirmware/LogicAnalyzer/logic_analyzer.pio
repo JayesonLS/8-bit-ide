@@ -28,32 +28,45 @@
 ;
 ; SM should be configured for autopush.
 .program la_sample
-    mov osr, null         ; Zero timestamp.
-    ; Can add trigger condition(s) here.
+
+check_for_trigger:  ; Trigger when address is 2 and ~IOW is low.
+    mov osr, pins
+    out null, 8     ; Skip data bits.
+    out x, 1        ; A0 to X (want 0)
+    jmp x-- check_for_trigger
+    out x, 1        ; A1 to X (want 1)
+    jmp !x check_for_trigger
+    out x, 1        ; ~IOW to X (want 0)    
+    jmp x-- check_for_trigger
+
+    ; Trigger conditions met.
+
+    mov osr, null           ; Zero timestamp.
+
 .wrap_target
 previous_in_y:
     mov x, osr              ; Decrement timestamp held in osr.
-    jmp x--, dec_x_jmp      ; The jump has no effect whether taken or not.
+    jmp x-- dec_x_jmp       ; The jump has no effect whether taken or not.
 dec_x_jmp:
     mov osr, x
 
     mov x, pins             ; See if pins have changed.
     jmp x!=y x_different
-    jmp previous_in_y [1]
+    jmp previous_in_y [1]   ; Pins have not changed, so loop. Delay for consistent loop timing.
 x_different:
-    in x, num_pin_bits
+    in x, num_pin_bits      ; Pins have changed so send desired number of pins and timestamp,
     in osr, num_timestamp_bits
 
     ; Fall through to alternate version of code where previous value is in X rather than Y.
     ; This makes the loop 1 cycle faster.
 
 previous_in_x:
-    mov y, osr              ; Decrement timestamp held in osr.
-    jmp y--, dec_y_jmp      ; The jump has no effect whether taken or not.
+    mov y, osr
+    jmp y-- dec_y_jmp
 dec_y_jmp:
     mov osr, y
 
-    mov y, pins             ; See if pins have changed.
+    mov y, pins
     jmp x!=y y_different
     jmp previous_in_x [1]
 y_different:
