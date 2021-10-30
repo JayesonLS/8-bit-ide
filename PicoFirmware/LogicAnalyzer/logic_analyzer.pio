@@ -64,3 +64,26 @@ y_different:
     in y, 32            ; Write X to output FIFO.
     out x, 32           ; Read time stamp from input FIFO (only held in OSR).
     in x, 32            ; Write time stamp to output FIFO. 
+
+;--------------------------------------------------------------------------------------------
+; Reduce bit count so data fits into one 32 bit value rather than two.
+;
+; SM should be configured for neither autopush or autopull. This allows flexibility in the
+; number/which bits are taken from each of pin values and timestamp. 
+.program la_bit_reduce
+    pull block
+    in osr, 16
+    pull block
+    in osr, 16
+    push block
+
+;--------------------------------------------------------------------------------------------
+; Post processing step.
+;
+; SM should be configured for neither autopush or autopull. Performance is not such a 
+; challenge here since duplicates have been removed. Explicit pull/push gives more
+; flexibility in processing data.
+.program la_post_process
+    pull block
+    mov isr, osr
+    push block

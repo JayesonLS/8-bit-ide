@@ -61,16 +61,21 @@ void LogicAnalyzer::StartSampling(CpuClock cpuClock)
     SetCpuClock(cpuClock);
 
     // Clear all fifos.
-    pio_sm_clear_fifos(pio, removeDupesSm);
     pio_sm_clear_fifos(pio, sampleSm);
+    pio_sm_clear_fifos(pio, removeDupesSm);
+    pio_sm_clear_fifos(pio, bitReduceSm);
+    pio_sm_clear_fifos(pio, postProcessSm);
 
     // Start DMAs.
     dma_channel_start(filteredToMemDmaChan);
 
     // Enable state machines.
     pio_sm_set_enabled(pio, removeDupesSm, true);
+    pio_sm_set_enabled(pio, bitReduceSm, true);
+    pio_sm_set_enabled(pio, postProcessSm, true);
 
     // Last step: enable the sampling state machine.
+    // Everything else is waiting on samples from this.
     pio_sm_set_enabled(pio, sampleSm, true);
 }
 
@@ -82,6 +87,8 @@ void LogicAnalyzer::StopSampling()
 
     pio_sm_set_enabled(pio, sampleSm, false);
     pio_sm_set_enabled(pio, removeDupesSm, false);
+    pio_sm_set_enabled(pio, bitReduceSm, false);
+    pio_sm_set_enabled(pio, postProcessSm, false);
 
     SetCpuClock(CpuClock::Standard);
 }
@@ -91,13 +98,13 @@ static int timeStamp = 0x0000;
 
 bool LogicAnalyzer::IsSamplingComplete()
 { 
-    pio_sm_put_blocking(pio, removeDupesSm, blerp & ~1); 
-    pio_sm_put_blocking(pio, removeDupesSm, timeStamp); 
+    pio_sm_put_blocking(pio, bitReduceSm, blerp & ~1); 
+    pio_sm_put_blocking(pio, bitReduceSm, timeStamp); 
     printf("Wrote %08X %08X\n", blerp & ~1, timeStamp);
 
-    while (!pio_sm_is_rx_fifo_empty(pio, removeDupesSm))
+    while (!pio_sm_is_rx_fifo_empty(pio, bitReduceSm))
     {
-        uint ret = pio_sm_get_blocking(pio, removeDupesSm);
+        uint ret = pio_sm_get_blocking(pio, bitReduceSm);
         printf("Read: %08X\n", ret);
     }
 
@@ -135,6 +142,28 @@ bool LogicAnalyzer::IsSamplingComplete()
         sm_config_set_out_shift(&c, true, true, 32);
         pio_sm_init(pio, removeDupesSm, removeDupesProgramOffset, &c);
     }
+
+    // Bit reduction state machine.
+    {
+        bitReduceProgramOffset = pio_add_program(pio, &la_bit_reduce_program);
+        bitReduceSm = pio_claim_unused_sm(pio, true);
+
+        pio_sm_config c = la_bit_reduce_program_get_default_config(bitReduceProgramOffset);
+        sm_config_set_in_shift(&c, true, false, 32);
+        sm_config_set_out_shift(&c, true, false, 32);
+        pio_sm_init(pio, bitReduceSm, bitReduceProgramOffset, &c);
+    }
+
+    // Post process state machine.
+    {
+        postProcessProgramOffset = pio_add_program(pio, &la_post_process_program);
+        postProcessSm = pio_claim_unused_sm(pio, true);
+
+        pio_sm_config c = la_post_process_program_get_default_config(postProcessProgramOffset);
+        sm_config_set_in_shift(&c, true, false, 32);
+        sm_config_set_out_shift(&c, true, false, 32);
+        pio_sm_init(pio, postProcessSm, postProcessProgramOffset, &c);
+    }  
 }
 
 // This was not implemented in the Pico SDK. Perhaps it does not work properly?
