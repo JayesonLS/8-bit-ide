@@ -59,7 +59,10 @@ void OutputSamples(const LogicAnalyzer &logicAnalyzer)
     const std::vector<LogicAnalyzer::Sample>& samples = logicAnalyzer.GetSamples();
     for (size_t i = 0; i < samples.size(); i++)
     {
-        printf("Sample: %08X %08X\n", -samples[i].timeStamp, samples[i].bits);
+        uint timeStamp = samples[i].timeStamp;
+        uint bits = samples[i].bits;
+
+        printf("Sample: %08X %08X\n", timeStamp, bits);
     }
 }
 

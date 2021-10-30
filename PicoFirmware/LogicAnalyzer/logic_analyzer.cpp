@@ -93,23 +93,34 @@ void LogicAnalyzer::StopSampling()
     SetCpuClock(CpuClock::Standard);
 }
 
-static int blerp = 0x12AA;
-static int timeStamp = 0x0000;
-
 bool LogicAnalyzer::IsSamplingComplete()
 { 
-    pio_sm_put_blocking(pio, bitReduceSm, blerp & ~1); 
-    pio_sm_put_blocking(pio, bitReduceSm, timeStamp); 
-    printf("Wrote %08X %08X\n", blerp & ~1, timeStamp);
-
-    while (!pio_sm_is_rx_fifo_empty(pio, bitReduceSm))
     {
-        uint ret = pio_sm_get_blocking(pio, bitReduceSm);
-        printf("Read: %08X\n", ret);
-    }
+        // Manually pump fifos.
+        if (!pio_sm_is_rx_fifo_empty(pio, sampleSm) && !pio_sm_is_tx_fifo_full(pio, removeDupesSm))
+        {
+            uint val = pio_sm_get(pio, sampleSm);
+            pio_sm_put(pio, removeDupesSm, val);
 
-    blerp++;
-    timeStamp--; 
+            printf("sample -> removeDupes: %08X\n", val);
+        }
+
+        if (!pio_sm_is_rx_fifo_empty(pio, removeDupesSm) && !pio_sm_is_tx_fifo_full(pio, bitReduceSm))
+        {
+            uint val = pio_sm_get(pio, removeDupesSm);
+            pio_sm_put(pio, bitReduceSm, val);
+
+            printf("removeDupesSm -> bitReduceSm: %08X\n", val);
+        }
+
+        if (!pio_sm_is_rx_fifo_empty(pio, bitReduceSm) && !pio_sm_is_tx_fifo_full(pio, postProcessSm))
+        {
+            uint val = pio_sm_get(pio, bitReduceSm);
+            pio_sm_put(pio, postProcessSm, val);
+
+            printf("bitReduceSm -> postProcessSm: %08X\n", val);
+        }
+    }
 
     // We are complete if the memory buffer is full / 
     // the dma to the memory buffer has completed.
@@ -192,7 +203,7 @@ static inline void channel_config_set_priority(dma_channel_config *c, bool high)
             filteredToMemDmaChan, 
             &c,
             &samples[0],
-            &pio->rxf[sampleSm],
+            &pio->rxf[postProcessSm],
             sampleSizeInLongs,
             false                
         );
