@@ -61,14 +61,14 @@ void LogicAnalyzer::StartSampling(CpuClock cpuClock)
     SetCpuClock(cpuClock);
 
     // Clear all fifos.
-//    pio_sm_clear_fifos(pio, removeDupesSm);
+    pio_sm_clear_fifos(pio, removeDupesSm);
     pio_sm_clear_fifos(pio, sampleSm);
 
     // Start DMAs.
     dma_channel_start(filteredToMemDmaChan);
 
     // Enable state machines.
-    // pio_sm_set_enabled(pio, removeDupesSm, true);
+    pio_sm_set_enabled(pio, removeDupesSm, true);
 
     // Last step: enable the sampling state machine.
     pio_sm_set_enabled(pio, sampleSm, true);
@@ -76,17 +76,34 @@ void LogicAnalyzer::StartSampling(CpuClock cpuClock)
 
 void LogicAnalyzer::StopSampling()
 {
-    SetCpuClock(CpuClock::Standard);
 
     // Stop DMA.
     dma_channel_abort(filteredToMemDmaChan);
 
     pio_sm_set_enabled(pio, sampleSm, false);
-//    pio_sm_set_enabled(pio, removeDupesSm, false);
+    pio_sm_set_enabled(pio, removeDupesSm, false);
+
+    SetCpuClock(CpuClock::Standard);
 }
+
+static int blerp = 0x12AA;
+static int timeStamp = 0x0000;
 
 bool LogicAnalyzer::IsSamplingComplete()
 { 
+    pio_sm_put_blocking(pio, removeDupesSm, blerp & ~1); 
+    pio_sm_put_blocking(pio, removeDupesSm, timeStamp); 
+    printf("Wrote %08X %08X\n", blerp & ~1, timeStamp);
+
+    while (!pio_sm_is_rx_fifo_empty(pio, removeDupesSm))
+    {
+        uint ret = pio_sm_get_blocking(pio, removeDupesSm);
+        printf("Read: %08X\n", ret);
+    }
+
+    blerp++;
+    timeStamp--; 
+
     // We are complete if the memory buffer is full / 
     // the dma to the memory buffer has completed.
     return !dma_channel_is_busy(filteredToMemDmaChan);
@@ -110,7 +127,13 @@ bool LogicAnalyzer::IsSamplingComplete()
 
     // Remove-dupes state machine.
     {
+        removeDupesProgramOffset = pio_add_program(pio, &la_remove_dupes_program);
+        removeDupesSm = pio_claim_unused_sm(pio, true);
 
+        pio_sm_config c = la_remove_dupes_program_get_default_config(removeDupesProgramOffset);
+        sm_config_set_in_shift(&c, true, true, 32);
+        sm_config_set_out_shift(&c, true, true, 32);
+        pio_sm_init(pio, removeDupesSm, removeDupesProgramOffset, &c);
     }
 }
 

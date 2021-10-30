@@ -66,6 +66,7 @@ private:
     uint removeDupesSm = 0xAA55;
     uint removeDupesProgramOffset = 0xAA55;
 
+    uint sampleToRemoveDupesDmaChan = 0xAA55;
     uint filteredToMemDmaChan = 0xAA55;
 
 };
