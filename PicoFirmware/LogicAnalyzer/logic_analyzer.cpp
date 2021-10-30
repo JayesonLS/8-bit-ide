@@ -67,7 +67,7 @@ void LogicAnalyzer::StartSampling(CpuClock cpuClock)
     pio_sm_clear_fifos(pio, postProcessSm);
 
     // Start DMAs.
-    dma_channel_start(filteredToMemDmaChan);
+    dma_channel_start(postProcessedToMemDmaChan);
 
     // Enable state machines.
     pio_sm_set_enabled(pio, removeDupesSm, true);
@@ -83,7 +83,7 @@ void LogicAnalyzer::StopSampling()
 {
 
     // Stop DMA.
-    dma_channel_abort(filteredToMemDmaChan);
+    dma_channel_abort(postProcessedToMemDmaChan);
 
     pio_sm_set_enabled(pio, sampleSm, false);
     pio_sm_set_enabled(pio, removeDupesSm, false);
@@ -124,7 +124,7 @@ bool LogicAnalyzer::IsSamplingComplete()
 
     // We are complete if the memory buffer is full / 
     // the dma to the memory buffer has completed.
-    return !dma_channel_is_busy(filteredToMemDmaChan);
+    return !dma_channel_is_busy(postProcessedToMemDmaChan);
 }
 
 /*private */ void LogicAnalyzer::InitStateMachines()
@@ -190,17 +190,17 @@ static inline void channel_config_set_priority(dma_channel_config *c, bool high)
 
     // DMA from final state machine to memory.
     {
-        filteredToMemDmaChan = dma_claim_unused_channel(true);
+        postProcessedToMemDmaChan = dma_claim_unused_channel(true);
 
-        dma_channel_config c = dma_channel_get_default_config(filteredToMemDmaChan);
+        dma_channel_config c = dma_channel_get_default_config(postProcessedToMemDmaChan);
         channel_config_set_read_increment(&c, false);
         channel_config_set_write_increment(&c, true);
-        channel_config_set_dreq(&c, pio_get_dreq(pio, sampleSm, false));
+        channel_config_set_dreq(&c, pio_get_dreq(pio, postProcessSm, false));
 //        channel_config_set_priority(&c, true);
 
         uint sampleSizeInLongs = samples.size() * (sizeof(Sample) / sizeof(uint32_t));
         dma_channel_configure(
-            filteredToMemDmaChan, 
+            postProcessedToMemDmaChan, 
             &c,
             &samples[0],
             &pio->rxf[postProcessSm],

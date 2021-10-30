@@ -51,8 +51,8 @@ public:
         uint GetData() const { return data; }
         uint GetAddr() const { return addr; }
         uint GetInvIow() const { return inv_iow; }
-        uint GetTimeStamp() const { return -( timeStamp + ~((1 << num_timestamp_bits)-1) ); } 
-    };
+        uint GetTimeStamp() const { return -timeStamp & ((1 << num_timestamp_bits)-1); } 
+   };
 
     LogicAnalyzer(PIO pio, uint captureStartPin, uint capturePinCount, size_t maxSampleCount);
     ~LogicAnalyzer();
@@ -91,5 +91,7 @@ private:
     uint postProcessProgramOffset = 0xAA55;
 
     uint sampleToRemoveDupesDmaChan = 0xAA55;
-    uint filteredToMemDmaChan = 0xAA55;
+    uint removeDupesToBitReduceDmaChan = 0xAA55;
+    uint bitReduceToPostProcessDmaChan = 0xAA55;
+    uint postProcessedToMemDmaChan = 0xAA55;
 };
