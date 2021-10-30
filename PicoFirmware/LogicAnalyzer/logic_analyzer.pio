@@ -19,76 +19,44 @@
 .define num_pin_bits 11
 .define num_timestamp_bits 32-num_pin_bits
 
-;--------------------------------------------------------------------------------------------
-; Sends two words one each loop. The first is the current state of the GPIO
-; pins. The second is a decrementing timestamp value.
-;  
-; This code must not run faster than la_remove_dupes. Otherwise something will stall
-; and the timestamp values will not be what we expect.
-; Currently written to be 5 cycles.
+; Reads the current state of the pins and when the state is different
+; to the previous, outputs the new pin values and timestamp to the FIFO.
+; Each time through the loop the timestamp is decremented (we don't
+; have increment functionality in the instruction set). 
+;
+; Loop time (sample period) is 7 cycles.
 ;
 ; SM should be configured for autopush.
 .program la_sample
-    mov x, null         ; Zero timestamp.
+    mov osr, null         ; Zero timestamp.
     ; Can add trigger condition(s) here.
 .wrap_target
-loop:
-    in pins, num_pin_bits         ; Read GPIO pin values and write directly to output FIFO.
-    in x, num_timestamp_bits            ; Write time stamp in X to output FIFO. 
-    jmp x-- loop         ; Decrement X (timestamp). The jump has no effect whether taken or not.
-.wrap
-;--------------------------------------------------------------------------------------------
-; Parses pairs of <pin values, timestamps>. If the pin values match the previous pin values,
-; the pin values and timestamp are discarded. Otherwise they are send to the out fifo.
-;
-; Each pair of values takes 5 cycles to process when different, 4 cycles when duplicates.
-;
-; SM should be configured for autopull and autopush.
-.program la_remove_dupes
 previous_in_y:
-    out x, 32           ; Read GPIO value from input FIFO and place data in X.
-    jmp x!=y x_different ; See if value has changed.
+    mov x, osr              ; Decrement timestamp held in osr.
+    jmp x--, dec_x_jmp      ; The jump has no effect whether taken or not.
+dec_x_jmp:
+    mov osr, x
 
-    out null, 32        ; Read and discard time stamp from input FIFO
-    jmp previous_in_x   ; Doesn't matter which half of loop we do as X==Y at this point. 
+    mov x, pins             ; See if pins have changed.
+    jmp x!=y x_different
+    jmp previous_in_y [1]
 x_different:
-    in x, 32            ; Write X to output FIFO.
-    out y, 32           ; Read time stamp from input FIFO into Y.
-    in y, 32            ; Write time stamp to output FIFO. 
+    in x, num_pin_bits
+    in osr, num_timestamp_bits
 
     ; Fall through to alternate version of code where previous value is in X rather than Y.
-    ; This makes code 1 cycle faster.
+    ; This makes the loop 1 cycle faster.
 
 previous_in_x:
-    out y, 32           ; Read GPIO value from input FIFO and place data in Y.
-    jmp x!=y y_different ; See if value has changed.
+    mov y, osr              ; Decrement timestamp held in osr.
+    jmp y--, dec_y_jmp      ; The jump has no effect whether taken or not.
+dec_y_jmp:
+    mov osr, y
 
-    out null, 32        ; Read and discard time stamp from input FIFO
-    jmp previous_in_y   ; Doesn't matter which half of loop we do as X==Y at this point.
+    mov y, pins             ; See if pins have changed.
+    jmp x!=y y_different
+    jmp previous_in_x [1]
 y_different:
-    in y, 32            ; Write X to output FIFO.
-    out x, 32           ; Read time stamp from input FIFO (only held in OSR).
-    in x, 32            ; Write time stamp to output FIFO. 
-
-;--------------------------------------------------------------------------------------------
-; Reduce bit count so data fits into one 32 bit value rather than two.
-;
-; SM should be configured for neither autopush or autopull. This allows flexibility in the
-; number/which bits are taken from each of pin values and timestamp. 
-.program la_bit_reduce
-    pull block
-    in osr, num_pin_bits
-    pull block
+    in y, num_pin_bits
     in osr, num_timestamp_bits
-    push block
-
-;--------------------------------------------------------------------------------------------
-; Post processing step.
-;
-; SM should be configured for neither autopush or autopull. Performance is not such a 
-; challenge here since duplicates have been removed. Explicit pull/push gives more
-; flexibility in processing data.
-.program la_post_process
-    pull block
-    mov isr, osr
-    push block
+.wrap
