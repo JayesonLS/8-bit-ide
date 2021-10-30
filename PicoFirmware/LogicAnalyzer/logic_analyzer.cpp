@@ -60,121 +60,38 @@ void LogicAnalyzer::StartSampling(CpuClock cpuClock)
 {
     SetCpuClock(cpuClock);
 
-    // Clear all fifos.
-    pio_sm_clear_fifos(pio, sampleSm);
-    pio_sm_clear_fifos(pio, removeDupesSm);
-    pio_sm_clear_fifos(pio, bitReduceSm);
-    pio_sm_clear_fifos(pio, postProcessSm);
-
-    // Start DMAs.
-    dma_channel_start(postProcessedToMemDmaChan);
-
-    // Enable state machines.
-    pio_sm_set_enabled(pio, removeDupesSm, true);
-    pio_sm_set_enabled(pio, bitReduceSm, true);
-    pio_sm_set_enabled(pio, postProcessSm, true);
-
-    // Last step: enable the sampling state machine.
-    // Everything else is waiting on samples from this.
-    pio_sm_set_enabled(pio, sampleSm, true);
+    pio_sm_clear_fifos(pio, sm);
+    dma_channel_start(dmaChan);
+    pio_sm_set_enabled(pio, sm, true);
 }
 
 void LogicAnalyzer::StopSampling()
 {
-
-    // Stop DMA.
-    dma_channel_abort(postProcessedToMemDmaChan);
-
-    pio_sm_set_enabled(pio, sampleSm, false);
-    pio_sm_set_enabled(pio, removeDupesSm, false);
-    pio_sm_set_enabled(pio, bitReduceSm, false);
-    pio_sm_set_enabled(pio, postProcessSm, false);
+    dma_channel_abort(dmaChan);
+    pio_sm_set_enabled(pio, sm, false);
 
     SetCpuClock(CpuClock::Standard);
 }
 
 bool LogicAnalyzer::IsSamplingComplete()
 { 
-    {
-        // Manually pump fifos.
-        if (!pio_sm_is_rx_fifo_empty(pio, sampleSm) && !pio_sm_is_tx_fifo_full(pio, removeDupesSm))
-        {
-            uint val = pio_sm_get(pio, sampleSm);
-            pio_sm_put(pio, removeDupesSm, val);
-
-            //printf("sample -> removeDupes: %08X\n", val);
-        }
-
-        if (!pio_sm_is_rx_fifo_empty(pio, removeDupesSm) && !pio_sm_is_tx_fifo_full(pio, bitReduceSm))
-        {
-            uint val = pio_sm_get(pio, removeDupesSm);
-            pio_sm_put(pio, bitReduceSm, val);
-
-            //printf("removeDupesSm -> bitReduceSm: %08X\n", val);
-        }
-
-        if (!pio_sm_is_rx_fifo_empty(pio, bitReduceSm) && !pio_sm_is_tx_fifo_full(pio, postProcessSm))
-        {
-            uint val = pio_sm_get(pio, bitReduceSm);
-            pio_sm_put(pio, postProcessSm, val);
-
-            //printf("bitReduceSm -> postProcessSm: %08X\n", val);
-        }
-    }
-
     // We are complete if the memory buffer is full / 
     // the dma to the memory buffer has completed.
-    return !dma_channel_is_busy(postProcessedToMemDmaChan);
+    return !dma_channel_is_busy(dmaChan);
 }
 
 /*private */ void LogicAnalyzer::InitStateMachines()
 {
-    // Sample state machine.
-    {
-        sampleProgramOffset = pio_add_program(pio, &la_sample_program);
-        sampleSm = pio_claim_unused_sm(pio, true);
+    programOffset = pio_add_program(pio, &la_sample_program);
+    sm = pio_claim_unused_sm(pio, true);
 
-        pio_sm_set_consecutive_pindirs(pio, sampleSm, startPin, pinCount, false);
+    pio_sm_set_consecutive_pindirs(pio, sm, startPin, pinCount, false);
 
-        pio_sm_config c = la_sample_program_get_default_config(sampleProgramOffset);
-        sm_config_set_in_pins(&c, startPin);
-        sm_config_set_in_shift(&c, true, true, 32);
-        sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_RX);
-        pio_sm_init(pio, sampleSm, sampleProgramOffset, &c);
-    }
-
-    // Remove-dupes state machine.
-    {
-        removeDupesProgramOffset = pio_add_program(pio, &la_remove_dupes_program);
-        removeDupesSm = pio_claim_unused_sm(pio, true);
-
-        pio_sm_config c = la_remove_dupes_program_get_default_config(removeDupesProgramOffset);
-        sm_config_set_in_shift(&c, true, true, 32);
-        sm_config_set_out_shift(&c, true, true, 32);
-        pio_sm_init(pio, removeDupesSm, removeDupesProgramOffset, &c);
-    }
-
-    // Bit reduction state machine.
-    {
-        bitReduceProgramOffset = pio_add_program(pio, &la_bit_reduce_program);
-        bitReduceSm = pio_claim_unused_sm(pio, true);
-
-        pio_sm_config c = la_bit_reduce_program_get_default_config(bitReduceProgramOffset);
-        sm_config_set_in_shift(&c, true, false, 32);
-        sm_config_set_out_shift(&c, true, false, 32);
-        pio_sm_init(pio, bitReduceSm, bitReduceProgramOffset, &c);
-    }
-
-    // Post process state machine.
-    {
-        postProcessProgramOffset = pio_add_program(pio, &la_post_process_program);
-        postProcessSm = pio_claim_unused_sm(pio, true);
-
-        pio_sm_config c = la_post_process_program_get_default_config(postProcessProgramOffset);
-        sm_config_set_in_shift(&c, true, false, 32);
-        sm_config_set_out_shift(&c, true, false, 32);
-        pio_sm_init(pio, postProcessSm, postProcessProgramOffset, &c);
-    }  
+    pio_sm_config c = la_sample_program_get_default_config(programOffset);
+    sm_config_set_in_pins(&c, startPin);
+    sm_config_set_in_shift(&c, true, true, 32);
+    sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_RX);
+    pio_sm_init(pio, sm, programOffset, &c);
 }
 
 // This was not implemented in the Pico SDK. Perhaps it does not work properly?
@@ -188,26 +105,23 @@ static inline void channel_config_set_priority(dma_channel_config *c, bool high)
     // Give bus priority to DMA.
     bus_ctrl_hw->priority = BUSCTRL_BUS_PRIORITY_DMA_W_BITS | BUSCTRL_BUS_PRIORITY_DMA_R_BITS;
 
-    // DMA from final state machine to memory.
-    {
-        postProcessedToMemDmaChan = dma_claim_unused_channel(true);
+    // DMA from state machine to memory.
+    dmaChan = dma_claim_unused_channel(true);
 
-        dma_channel_config c = dma_channel_get_default_config(postProcessedToMemDmaChan);
-        channel_config_set_read_increment(&c, false);
-        channel_config_set_write_increment(&c, true);
-        channel_config_set_dreq(&c, pio_get_dreq(pio, postProcessSm, false));
-//        channel_config_set_priority(&c, true);
+    dma_channel_config c = dma_channel_get_default_config(dmaChan);
+    channel_config_set_read_increment(&c, false);
+    channel_config_set_write_increment(&c, true);
+    channel_config_set_dreq(&c, pio_get_dreq(pio, sm, false));
 
-        uint sampleSizeInLongs = samples.size() * (sizeof(Sample) / sizeof(uint32_t));
-        dma_channel_configure(
-            postProcessedToMemDmaChan, 
-            &c,
-            &samples[0],
-            &pio->rxf[postProcessSm],
-            sampleSizeInLongs,
-            false                
-        );
-    }
+    uint sampleSizeInLongs = samples.size() * (sizeof(Sample) / sizeof(uint32_t));
+    dma_channel_configure(
+        dmaChan, 
+        &c,
+        &samples[0],
+        &pio->rxf[sm],
+        sampleSizeInLongs,
+        false                
+    );
 }
 
 /*private */ void LogicAnalyzer::SetCpuClock(CpuClock cpuClock)

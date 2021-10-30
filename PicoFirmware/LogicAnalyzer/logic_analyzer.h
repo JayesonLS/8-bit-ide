@@ -80,18 +80,8 @@ private:
     uint pinCount = 0xAA55;
 
     PIO pio = nullptr;
-    uint sampleSm = 0xAA55;
-    uint removeDupesSm = 0xAA55;
-    uint bitReduceSm = 0xAA55;
-    uint postProcessSm = 0xAA55;
+    uint sm = 0xAA55;
+    uint programOffset = 0xAA55; 
 
-    uint sampleProgramOffset = 0xAA55; 
-    uint removeDupesProgramOffset = 0xAA55; 
-    uint bitReduceProgramOffset = 0xAA55;
-    uint postProcessProgramOffset = 0xAA55;
-
-    uint sampleToRemoveDupesDmaChan = 0xAA55;
-    uint removeDupesToBitReduceDmaChan = 0xAA55;
-    uint bitReduceToPostProcessDmaChan = 0xAA55;
-    uint postProcessedToMemDmaChan = 0xAA55;
+    uint dmaChan = 0xAA55;
 };

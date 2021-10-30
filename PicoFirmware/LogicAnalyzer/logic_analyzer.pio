@@ -33,9 +33,9 @@
     ; Can add trigger condition(s) here.
 .wrap_target
 loop:
-    in pins, 32 [1]     ; Read GPIO pin values and write directly to output FIFO.
-    in x, 32            ; Write time stamp in X to output FIFO. 
-    jmp x-- loop [1]    ; Decrement X (timestamp). The jump has no effect whether taken or not.
+    in pins, num_pin_bits         ; Read GPIO pin values and write directly to output FIFO.
+    in x, num_timestamp_bits            ; Write time stamp in X to output FIFO. 
+    jmp x-- loop         ; Decrement X (timestamp). The jump has no effect whether taken or not.
 .wrap
 ;--------------------------------------------------------------------------------------------
 ; Parses pairs of <pin values, timestamps>. If the pin values match the previous pin values,
