@@ -62,12 +62,13 @@ private:
 
     PIO pio = nullptr;
     uint sampleSm = 0xAA55;
-    uint sampleProgramOffset = 0xAA55; 
     uint removeDupesSm = 0xAA55;
-    uint removeDupesProgramOffset = 0xAA55; 
     uint bitReduceSm = 0xAA55;
-    uint bitReduceProgramOffset = 0xAA55;
     uint postProcessSm = 0xAA55;
+
+    uint sampleProgramOffset = 0xAA55; 
+    uint removeDupesProgramOffset = 0xAA55; 
+    uint bitReduceProgramOffset = 0xAA55;
     uint postProcessProgramOffset = 0xAA55;
 
     uint sampleToRemoveDupesDmaChan = 0xAA55;
