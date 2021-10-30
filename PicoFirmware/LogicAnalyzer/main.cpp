@@ -19,7 +19,7 @@
 #include "logic_analyzer.h"
 #include "isaout.pio.h"
 
-const size_t CAPTURE_MAX_SAMPLES = 24 * 1024;
+const size_t CAPTURE_MAX_SAMPLES = 48 * 1024;
 const uint CAPTURE_START_PIN = 0;
 const uint CAPTURE_PIN_COUNT = 29;
 const LogicAnalyzer::CpuClock OVERCLOCK_TYPE = LogicAnalyzer::CpuClock::Standard;
@@ -56,13 +56,16 @@ void DelayAndBlink(uint seconds)
 
 void OutputSamples(const LogicAnalyzer &logicAnalyzer)
 {
+    printf("Timestamp, ~IOW, Addr, Data\n");
+   
     const std::vector<LogicAnalyzer::Sample>& samples = logicAnalyzer.GetSamples();
     for (size_t i = 0; i < samples.size(); i++)
     {
-        uint timeStamp = samples[i].timeStamp;
-        uint bits = samples[i].bits;
-
-        printf("Sample: %08X %08X\n", timeStamp, bits);
+        printf("%08X, %01X, %01X, %02X\n", 
+                samples[i].GetTimeStamp(), 
+                samples[i].GetInvIow(),
+                samples[i].GetAddr(),
+                samples[i].GetData());
     }
 }
 

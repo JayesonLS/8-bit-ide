@@ -15,6 +15,10 @@
 ; You should have received a copy of the GNU General Public License
 ; along with this program.If not, see < https://www.gnu.org/licenses/>.
 
+; These should match the values in logic_analyzer.h
+.define num_pin_bits 11
+.define num_timestamp_bits 32-num_pin_bits
+
 ;--------------------------------------------------------------------------------------------
 ; Sends two words one each loop. The first is the current state of the GPIO
 ; pins. The second is a decrementing timestamp value.
@@ -25,6 +29,7 @@
 ;
 ; SM should be configured for autopush.
 .program la_sample
+    mov x, null         ; Zero timestamp.
     ; Can add trigger condition(s) here.
 .wrap_target
 loop:
@@ -72,9 +77,9 @@ y_different:
 ; number/which bits are taken from each of pin values and timestamp. 
 .program la_bit_reduce
     pull block
-    in osr, 16
+    in osr, num_pin_bits
     pull block
-    in osr, 16
+    in osr, num_timestamp_bits
     push block
 
 ;--------------------------------------------------------------------------------------------

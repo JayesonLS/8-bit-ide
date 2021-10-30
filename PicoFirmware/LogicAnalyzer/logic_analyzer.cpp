@@ -102,7 +102,7 @@ bool LogicAnalyzer::IsSamplingComplete()
             uint val = pio_sm_get(pio, sampleSm);
             pio_sm_put(pio, removeDupesSm, val);
 
-            printf("sample -> removeDupes: %08X\n", val);
+            //printf("sample -> removeDupes: %08X\n", val);
         }
 
         if (!pio_sm_is_rx_fifo_empty(pio, removeDupesSm) && !pio_sm_is_tx_fifo_full(pio, bitReduceSm))
@@ -110,7 +110,7 @@ bool LogicAnalyzer::IsSamplingComplete()
             uint val = pio_sm_get(pio, removeDupesSm);
             pio_sm_put(pio, bitReduceSm, val);
 
-            printf("removeDupesSm -> bitReduceSm: %08X\n", val);
+            //printf("removeDupesSm -> bitReduceSm: %08X\n", val);
         }
 
         if (!pio_sm_is_rx_fifo_empty(pio, bitReduceSm) && !pio_sm_is_tx_fifo_full(pio, postProcessSm))
@@ -118,7 +118,7 @@ bool LogicAnalyzer::IsSamplingComplete()
             uint val = pio_sm_get(pio, bitReduceSm);
             pio_sm_put(pio, postProcessSm, val);
 
-            printf("bitReduceSm -> postProcessSm: %08X\n", val);
+            //printf("bitReduceSm -> postProcessSm: %08X\n", val);
         }
     }
 

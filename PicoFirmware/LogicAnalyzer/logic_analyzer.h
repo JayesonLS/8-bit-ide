@@ -29,10 +29,29 @@ public:
         Overclock3x // Must execute from ram or make compile time changes for /4 flash clock speed.
     };
 
-    struct Sample
-    {
-        uint bits;
-        uint timeStamp;
+    class Sample
+    {    
+    private:
+        // These should match the values in logic_analyzer.pio.
+        static const int num_data_bits = 8;
+        static const int num_addr_bits = 2;
+        static const int num_iow_bits = 1;
+
+        static const uint num_pin_bits = num_data_bits + num_addr_bits + num_iow_bits;
+        static const uint num_timestamp_bits = 32-num_pin_bits;
+
+        uint data : num_data_bits;
+        uint addr : num_addr_bits;
+        uint inv_iow : num_iow_bits;
+        uint timeStamp : num_timestamp_bits;
+
+        static_assert(num_data_bits + num_addr_bits + num_iow_bits + num_timestamp_bits == 32);
+
+    public:
+        uint GetData() const { return data; }
+        uint GetAddr() const { return addr; }
+        uint GetInvIow() const { return inv_iow; }
+        uint GetTimeStamp() const { return -( timeStamp + ~((1 << num_timestamp_bits)-1) ); } 
     };
 
     LogicAnalyzer(PIO pio, uint captureStartPin, uint capturePinCount, size_t maxSampleCount);
