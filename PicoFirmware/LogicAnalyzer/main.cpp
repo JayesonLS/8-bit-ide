@@ -19,10 +19,14 @@
 #include "logic_analyzer.h"
 #include "isaout.pio.h"
 
-const size_t CAPTURE_MAX_SAMPLES = 48 * 1024;
-const uint CAPTURE_START_PIN = 0;
-const uint CAPTURE_PIN_COUNT = 11;
-const LogicAnalyzer::CpuClock OVERCLOCK_TYPE = LogicAnalyzer::CpuClock::Standard;
+static const size_t CAPTURE_MAX_SAMPLES = 48 * 1024;
+static const LogicAnalyzer::CpuClock OVERCLOCK_TYPE = LogicAnalyzer::CpuClock::Standard;
+
+#ifndef PICO_DEFAULT_LED_PIN
+#error Board with a regular LED required.
+#else
+const uint LED_PIN = PICO_DEFAULT_LED_PIN;
+#endif
 
 void InitIsaOut(PIO pio, uint &isaOutSm)
 {
@@ -36,36 +40,52 @@ void IsaOutOutputValue(PIO pio, uint isaOutSm, uint value)
     pio_sm_put_blocking(pio, isaOutSm, value); 
 }
 
-void DelayAndBlink(uint seconds)
+void InitLed()
 {
-#ifndef PICO_DEFAULT_LED_PIN
-#warning blink requires a board with a regular LED
-#else
     const uint LED_PIN = PICO_DEFAULT_LED_PIN;
     gpio_init(LED_PIN);
     gpio_set_dir(LED_PIN, GPIO_OUT);
+}
+
+void SetLed(bool on)
+{
+    gpio_put(LED_PIN, on ? 1 : 0);
+}
+
+void DelayAndBlink(uint seconds)
+{
     do
     {
-        gpio_put(LED_PIN, 1);
+        SetLed(true);
         sleep_ms(500);
-        gpio_put(LED_PIN, 0);
+        SetLed(false);
         sleep_ms(500);
     } while (--seconds != 0);
-#endif
+}
+
+void OutputSamplesHeader()
+{
+    printf("Timestamp, Addr, Data, ~CS, AEN, ~IOR, ~IOW, DRQ, ~DACK, IRQ, ~RESET\n");
 }
 
 void OutputSamples(const LogicAnalyzer &logicAnalyzer)
 {
-    printf("Timestamp, ~IOW, Addr, Data\n");
-   
     const std::vector<LogicAnalyzer::Sample>& samples = logicAnalyzer.GetSamples();
     for (size_t i = 0; i < samples.size(); i++)
     {
-        printf("%08X, %01X, %01X, %02X\n", 
+        printf("%08X, %01X, %02X, %01X, %01X, %01X, %01X, %01X, %01X, %01X, %01\n", 
                 samples[i].GetTimeStamp(), 
-                samples[i].GetInvIow(),
                 samples[i].GetAddr(),
-                samples[i].GetData());
+                samples[i].GetData(),
+                samples[i].GetInvCs(),
+                samples[i].GetAen(),
+                samples[i].GetInvIor(),
+                samples[i].GetInvIow(),
+                samples[i].GetDrq(),
+                samples[i].GetInvDack(),
+                samples[i].GetIrq(),
+                samples[i].GetInvReset()
+                );
     }
 }
 
@@ -73,31 +93,48 @@ int main()
 {
     stdio_init_all();
 
-    DelayAndBlink(2);
-    printf("Starting...\n");
+    InitLed();
+    SetLed(true);
 
-    LogicAnalyzer logicAnalyzer(pio1, CAPTURE_START_PIN, CAPTURE_PIN_COUNT, CAPTURE_MAX_SAMPLES);
+    LogicAnalyzer logicAnalyzer(pio1, CAPTURE_MAX_SAMPLES);
     logicAnalyzer.InitPins();
-
-    PIO isaOutPio = pio0;
-    uint isaOutSm = 0xAA55;
-    InitIsaOut(isaOutPio, isaOutSm);
-
     logicAnalyzer.InitSampling();
+
+    // TODO: Wait for button down here.
+    // Blink led whie waiting.
+
     logicAnalyzer.StartSampling(OVERCLOCK_TYPE);
+    SetLed(true);
 
-    // Output incrementing values continuously until the sampling is complete.
-    for (int ledValue = 0; ; ledValue++)
+    // Output header now so there is something on the console
+    // to show activity.
+    OutputSamplesHeader();
+
+    // Loop until sampling complete (sample buffer full) or 
+    // butt pressed again.
+    bool needRelease = true;
+    do
     {
-        IsaOutOutputValue(isaOutPio, isaOutSm, ledValue);
-        
-        if (logicAnalyzer.IsSamplingComplete())
-        {
-            break;
-        }
-    }
+        sleep_ms(100); // Lazy debounce.
 
-    logicAnalyzer.StopSampling();
+        if (needRelease)
+        {
+            if (false /* TODO: Button released */)
+            {
+                needRelease = false;
+            }
+        }
+        else
+        {
+            if (false /* TODO: Button pressed */)
+            {
+                logicAnalyzer.StopSampling();
+                break;    
+            }
+        }
+    } while (!logicAnalyzer.IsSamplingComplete());
+    
+    SetLed(false);
 
     OutputSamples(logicAnalyzer);
 

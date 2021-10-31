@@ -16,7 +16,7 @@
 ; along with this program.If not, see < https://www.gnu.org/licenses/>.
 
 ; These should match the values in logic_analyzer.h
-.define num_pin_bits 11
+.define num_pin_bits 25
 .define num_timestamp_bits 32-num_pin_bits
 
 ; Reads the current state of the pins and when the state is different
@@ -29,14 +29,20 @@
 ; SM should be configured for autopush.
 .program la_sample
 
-check_for_trigger:  ; Trigger when address is 2 and ~IOW is low.
+check_for_trigger:  ; Trigger when CS is high, AEN is low and either ~IOW or ~IOR is low.
     mov osr, pins
-    out null, 8     ; Skip data bits.
-    out x, 1        ; A0 to X (want 0)
+    out null, 10    ; Skip data and address bits.
+    out x, 1        ; AEN to X (want 0)
     jmp x-- check_for_trigger
-    out x, 1        ; A1 to X (want 1)
-    jmp !x check_for_trigger
-    out x, 1        ; ~IOW to X (want 0)    
+    out null, 2     ; Skip ~DACK and SPI_RX
+    out x, 1        ; ~IOW 1 to X (want 0)
+    out null, 2     ; Skip SPI_SCK and SPI_TX
+    out y, 1        ; ~IOR to Y (want 0)
+    jmp !x is_io_rw
+    jmp y-- check_for_trigger
+is_io_rw:
+    out null, 5     ; Skip ~RESET, DATA_DIR and internal GPIOs.
+    out x, 1        ; ~CS 1 to X (want 0)
     jmp x-- check_for_trigger
 
     ; Trigger conditions met.

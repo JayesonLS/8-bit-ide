@@ -20,10 +20,8 @@
 #include "logic_analyzer.h"
 #include "logic_analyzer.pio.h"
 
-LogicAnalyzer::LogicAnalyzer(PIO pio, uint captureStartPin, uint capturePinCount, size_t maxSampleCount)
-    : startPin(captureStartPin)
-    , pinCount(capturePinCount)
-    , pio(pio)
+LogicAnalyzer::LogicAnalyzer(PIO pio, size_t maxSampleCount)
+    : pio(pio)
 {
     samples.resize(maxSampleCount);
 }   
@@ -42,9 +40,9 @@ LogicAnalyzer::~LogicAnalyzer()
 // configuration of the pins.
 void LogicAnalyzer::InitPins()
 {
-    for (uint i = 0; i < pinCount; i++)
+    for (uint i = 0; i < CAPTURE_PIN_COUNT; i++)
     {
-        pio_gpio_init(pio, startPin + i);
+        pio_gpio_init(pio, CAPTURE_START_PIN + i);
     }
 }
 
@@ -85,10 +83,10 @@ bool LogicAnalyzer::IsSamplingComplete()
     programOffset = pio_add_program(pio, &la_sample_program);
     sm = pio_claim_unused_sm(pio, true);
 
-    pio_sm_set_consecutive_pindirs(pio, sm, startPin, pinCount, false);
+    pio_sm_set_consecutive_pindirs(pio, sm, CAPTURE_START_PIN, CAPTURE_PIN_COUNT, false);
 
     pio_sm_config c = la_sample_program_get_default_config(programOffset);
-    sm_config_set_in_pins(&c, startPin);
+    sm_config_set_in_pins(&c, CAPTURE_START_PIN);
     sm_config_set_in_shift(&c, true, true, 32);
     sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_RX);
     pio_sm_init(pio, sm, programOffset, &c);
