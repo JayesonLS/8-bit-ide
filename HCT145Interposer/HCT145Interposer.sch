@@ -349,14 +349,6 @@ Text GLabel 7600 3900 0    50   Input ~ 0
 GATE2_125_OUT
 Text GLabel 7600 4000 0    50   Input ~ 0
 GATE3_125_OUT
-Text GLabel 8350 1950 2    50   Input ~ 0
-GATE0_IN
-Text GLabel 8350 2050 2    50   Input ~ 0
-GATE1_IN
-Text GLabel 8350 2150 2    50   Input ~ 0
-GATE2_IN
-Text GLabel 8350 2250 2    50   Input ~ 0
-GATE3_IN
 Wire Wire Line
 	2650 2700 2550 2700
 Wire Wire Line
@@ -494,4 +486,12 @@ Wire Wire Line
 	2550 3000 2550 3300
 Connection ~ 2550 3000
 Connection ~ 2550 3300
+Text GLabel 8350 1950 2    39   Input ~ 0
+GATE0_~OE
+Text GLabel 8350 2050 2    39   Input ~ 0
+GATE1_~OE
+Text GLabel 8350 2150 2    39   Input ~ 0
+GATE2_~OE
+Text GLabel 8350 2250 2    39   Input ~ 0
+GATE3_~OE
 $EndSCHEMATC
