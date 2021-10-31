@@ -19,6 +19,7 @@
 #include "logic_analyzer.h"
 #include "isaout.pio.h"
 
+static const LogicAnalyzer::CaptureType CAPTURE_TYPE = LogicAnalyzer::CaptureType::Sample;
 static const size_t CAPTURE_MAX_SAMPLES = 48 * 1024;
 static const LogicAnalyzer::CpuClock OVERCLOCK_TYPE = LogicAnalyzer::CpuClock::Standard;
 
@@ -96,7 +97,7 @@ int main()
     InitLed();
     SetLed(true);
 
-    LogicAnalyzer logicAnalyzer(pio1, CAPTURE_MAX_SAMPLES);
+    LogicAnalyzer logicAnalyzer(pio1, CAPTURE_TYPE, CAPTURE_MAX_SAMPLES);
     logicAnalyzer.InitPins();
     logicAnalyzer.InitSampling();
 

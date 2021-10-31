@@ -20,8 +20,9 @@
 #include "logic_analyzer.h"
 #include "logic_analyzer.pio.h"
 
-LogicAnalyzer::LogicAnalyzer(PIO pio, size_t maxSampleCount)
-    : pio(pio)
+LogicAnalyzer::LogicAnalyzer(PIO pio, CaptureType captureType, size_t maxSampleCount)
+    : captureType(captureType)
+    , pio(pio)
 {
     samples.resize(maxSampleCount);
 }   
@@ -80,16 +81,35 @@ bool LogicAnalyzer::IsSamplingComplete()
 
 /*private */ void LogicAnalyzer::InitStateMachines()
 {
-    programOffset = pio_add_program(pio, &la_sample_program);
     sm = pio_claim_unused_sm(pio, true);
-
     pio_sm_set_consecutive_pindirs(pio, sm, CAPTURE_START_PIN, CAPTURE_PIN_COUNT, false);
 
-    pio_sm_config c = la_sample_program_get_default_config(programOffset);
-    sm_config_set_in_pins(&c, CAPTURE_START_PIN);
-    sm_config_set_in_shift(&c, true, true, 32);
-    sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_RX);
-    pio_sm_init(pio, sm, programOffset, &c);
+    switch (captureType)
+    {
+        case CaptureType::Sample:
+        {
+            programOffset = pio_add_program(pio, &la_sample_program);
+            pio_sm_config c = la_sample_program_get_default_config(programOffset);
+            sm_config_set_in_pins(&c, CAPTURE_START_PIN);
+            sm_config_set_in_shift(&c, true, true, 32);
+            sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_RX);
+            pio_sm_init(pio, sm, programOffset, &c);
+            break;
+        }
+        case CaptureType::DataValues:
+        {
+            programOffset = pio_add_program(pio, &la_capture_data_values_program);
+            pio_sm_config c = la_capture_data_values_program_get_default_config(programOffset);
+            sm_config_set_in_pins(&c, CAPTURE_START_PIN);
+            sm_config_set_in_shift(&c, true, false, 32);
+            sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_RX);
+            pio_sm_init(pio, sm, programOffset, &c);
+            break;
+        }
+        default:
+            panic("Invalid CpuClock enum");
+            break;
+    }
 }
 
 // This was not implemented in the Pico SDK. Perhaps it does not work properly?

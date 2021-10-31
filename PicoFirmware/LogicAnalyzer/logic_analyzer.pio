@@ -19,6 +19,7 @@
 .define num_pin_bits 25
 .define num_timestamp_bits 32-num_pin_bits
 
+;-----------------------------------------------------------------------------------------
 ; Reads the current state of the pins and when the state is different
 ; to the previous, outputs the new pin values and timestamp to the FIFO.
 ; Each time through the loop the timestamp is decremented (we don't
@@ -79,3 +80,47 @@ y_different:
     in y, num_pin_bits
     in osr, num_timestamp_bits
 .wrap
+
+;-----------------------------------------------------------------------------------------
+; Only captures one sample for every IO or DMA read/writes to the drive. 
+;
+; ISR is used to hold the previous sample, so when we detect ~IOR or ~IOW transition
+; to high, we send the previous sample to be sure we don't miss the data.
+;
+; SM should be configured for neither autopush or autopull.
+.program la_capture_data_values
+wait_for_io_rw_low:
+    mov osr, pins
+    mov y, osr
+    out null, 13    ; Skip to ~IOW
+    out x, 1        ; ~IOW to X (want 0)
+    jmp !x wait_for_io_rw_high
+    out null, 2     ; Skip to ~IOR
+    out x, 1        ; ~IOR to X (want 0)
+    jmp x-- wait_for_io_rw_low
+
+wait_for_io_rw_high:    
+    mov isr, y      ; Update previous value
+    mov osr, pins
+    mov y, pins     ; Save so we can update previous value.
+    out null, 13    ; Skip to ~IOW
+    out x, 1        ; ~IOW to X (want 1)
+    jmp !x wait_for_io_rw_high
+    out null, 2     ; Skip to ~IOR
+    out x, 1        ; ~IOR to X (want 1)
+    jmp !x wait_for_io_rw_high
+
+check_decode:
+    mov osr, isr
+    out null, 10    ; Skip to AEN
+    out x, 1        ; AEN to X
+    jmp !x check_for_ior
+    out x, 1        ; ~DACK to X (want 0)
+    jmp !x, decode_match
+    jmp wait_for_io_rw_low
+check_for_ior:
+    out null, 11    ; Skip to ~CS
+    out x, 1        ; ~CS to X (want 1)
+    jmp !x, wait_for_io_rw_low
+decode_match:
+    push block

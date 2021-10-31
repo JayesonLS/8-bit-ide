@@ -25,7 +25,13 @@ public:
     static const uint CAPTURE_START_PIN = 4;
     static const uint CAPTURE_PIN_COUNT = 25;
 
-    enum CpuClock
+    enum class CaptureType
+    {
+        Sample,
+        DataValues
+    };
+
+    enum class CpuClock
     {
         Standard, // 125 MHz.
         Overclock2x,
@@ -76,7 +82,7 @@ public:
 
     static_assert(sizeof(Sample) == 4);
 
-    LogicAnalyzer(PIO pio, size_t maxSampleCount);
+    LogicAnalyzer(PIO pio, CaptureType captureType, size_t maxSampleCount);
     ~LogicAnalyzer();
 
     void InitPins(); // We allow pin init early to allow other state machines to change the configuration of the pins.
@@ -97,6 +103,8 @@ private:
     CpuClock currentClock = CpuClock::Standard;
 
     std::vector<Sample> samples;
+
+    CaptureType captureType;
 
     PIO pio = nullptr;
     uint sm = 0xAA55;
