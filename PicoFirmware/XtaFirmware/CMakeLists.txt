@@ -22,9 +22,10 @@ if (TARGET tinyusb_device)
                 )
 
         pico_generate_pio_header(8bit_ide_drive ${CMAKE_CURRENT_LIST_DIR}/isaout.pio)
+        pico_generate_pio_header(8bit_ide_drive ${CMAKE_CURRENT_LIST_DIR}/data_buffer.pio)
                 
         # Pull in our pico_stdlib which aggregates commonly used features
-        target_link_libraries(8bit_ide_drive pico_stdlib hardware_pio)
+        target_link_libraries(8bit_ide_drive pico_stdlib hardware_pio hardware_dma)
     
         # enable usb output, disable uart output
         pico_enable_stdio_usb(8bit_ide_drive 1)
