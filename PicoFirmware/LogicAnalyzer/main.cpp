@@ -17,7 +17,6 @@
 #include <pico/stdlib.h>
 #include <hardware/pio.h>
 #include "logic_analyzer.h"
-#include "isaout.pio.h"
 
 static const LogicAnalyzer::CaptureType CAPTURE_TYPE = LogicAnalyzer::CaptureType::Sample;
 static const size_t CAPTURE_MAX_SAMPLES = 48 * 1024;
@@ -28,18 +27,6 @@ static const LogicAnalyzer::CpuClock OVERCLOCK_TYPE = LogicAnalyzer::CpuClock::S
 #else
 const uint LED_PIN = PICO_DEFAULT_LED_PIN;
 #endif
-
-void InitIsaOut(PIO pio, uint &isaOutSm)
-{
-    uint programOffset = pio_add_program(pio, &isaout_program);
-    isaOutSm = pio_claim_unused_sm(pio, true);
-    isaout_program_init(pio, isaOutSm, programOffset, 0, 8, 2, 10);
-}
-
-void IsaOutOutputValue(PIO pio, uint isaOutSm, uint value)
-{
-    pio_sm_put_blocking(pio, isaOutSm, value); 
-}
 
 void InitLed()
 {
