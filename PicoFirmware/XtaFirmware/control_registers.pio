@@ -1,0 +1,104 @@
+; Test PIO program for outputting data with approximate ISA timing.
+;
+; Copyright (C) 2021 Titanium Studios Pty Ltd 
+; 
+; This program is free software : you can redistribute it and/or modify
+; it under the terms of the GNU General Public License as published by
+; the Free Software Foundation, either version 3 of the License, or
+; (at your option) any later version.
+; 
+; This program is distributed in the hope that it will be useful,
+; but WITHOUT ANY WARRANTY; without even the implied warranty of
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
+; GNU General Public License for more details.
+; 
+; You should have received a copy of the GNU General Public License
+; along with this program.If not, see < https://www.gnu.org/licenses/>.
+
+; At 125MHz, 8ns per instruction.
+
+; Possible pin reorder
+;        uint data : num_data_bits;
+;        uint inv_dack : 1;
+;        uint inv_ior : 1;
+;        uint inv_iow : 1;
+;        uint inv_cs : 1;
+;        uint aen : 1;
+;        uint addr : num_addr_bits;
+;
+;        uint drq : 1;
+;        uint irq : 1;
+;        uint inv_reset : 1;
+
+; TODO: Need to be careful not to pump values into FIFO too quickly. On select, program
+; will generate an IRQ. If another value gets pushed into the FIFO after, it will override
+; the busy flags.
+
+; TODO: We are one instruction over. May need to remove the replication of the busy variant
+; flags (the two in osr, 16). This will mean that a second select before the CPU respons would
+; start returning all zeros. 
+
+; Maybe dedicate an entire CPU to checking for this IRQ? Its whole job could be to push 
+; a busy variant of the flags into the FIFO. There may be some tricky race conditions to
+; deal with. Something to check the timing of.
+
+.program control_regs
+.side_set 1 opt
+    ; This program *MUST* be started at the wrap target.
+
+address_1_write:
+    ; Reset controller.
+    irq wait 0      ; Trigger reset interupt and halt the program 
+
+address_2_write:
+    ; Select controller.
+    irq 1           ; Trigger select interrupt.
+    pull noblock    ; Get latest value from FIFO if any, otherwise X -> OSR
+    out null, 16    ; Switch to busy variant of flags
+    in osr, 16
+    in osr, 16
+    mov x, isr  
+
+    wait 1 pin 10   ; Wait for ~IOW high.
+    ; Fall through to wrap target.
+
+.wrap_target
+wait_for_read_or_write:
+    pull noblock    ; Keep read values up to date. If FIFO is empty,
+    mov x, osr      ; X is moved to OSR. Hold read values in X.
+    mov osr, pins
+    out null, 12    ; Skip data, ~DACK and ~IOR
+    out y, 1        ; ~IOW to Y (want 0)
+    jmp !y read_or_write_start
+    jmp pin wait_for_read_or_write  ; Jump if ~IOR high.
+
+read_or_write_start:
+    out y, 2        ; ~CS and AEN to Y (want both 0)
+    jmp y-- wait_for_read_or_write
+    out y, 2        ; Address to Y
+    jmp y-- wait_for_read_or_write ; Jump if address = 0
+    mov osr, x      ; Get data into X. Low 8 bits is address 1 value, next 8 bits is address 2 value. 
+    jmp y-- not_address_1          ; Jump if address 2 or 3
+
+address_1:
+    ; Read or write to address = 1.
+    jmp pin address_1_write ; If ~IOR high, ~IOW must be low
+address_1_read:
+    jmp do_read
+
+not_address_1:
+    jmp y-- wait_for_read_or_write ; Jump if address 3.
+address_2:
+    jmp pin address_2_write ; If ~IOR high, ~IOW must be low
+address_2_read:
+    out null, 8     ; Skip low 8 bits to get address 1 value
+
+do_read:
+    pull osr, x side 1  ; Get data, change tranceiver direction
+    out pins, 8         ; Set data
+    mov osr, ~null
+    out pindirs, 8      ; Set pindirs
+    mov osr, null
+    wait 1 pin 9        ; Wait for ~IOR high
+    out pindirs, 8 side 0 ; Disable outputs and restore tranceiver direction.
+.wrap

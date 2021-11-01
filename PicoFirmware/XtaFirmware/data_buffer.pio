@@ -15,14 +15,6 @@
 ; You should have received a copy of the GNU General Public License
 ; along with this program.If not, see < https://www.gnu.org/licenses/>.
 
-; Pulls 2 bit address values and 8 bit data values from the FIFO and 
-; outputs using simplified ISA ~IOW bus timings.
-; Assumes 125 MHz clock and 10 MHz ISA bus - so 12.5 cycles per ISA bus clock cycle.
-; Total time for one wrap when there is continuous data in the FIFO should be 5 ISA bus clocks. 
-; We could make this code us less instructions shorter by slowing the clock, however this is
-; just for experimentation testing the moment.
-
-
 ;        uint data : num_data_bits;
 ;        uint addr : num_addr_bits;
 ;        uint aen : 1;
@@ -136,14 +128,6 @@ wait_for_read_start:
     out pins, 8         ; Set data
     mov osr, ~null
     out pindirs, 8      ; Set pindirs
-
-wait_for_read_end:
-    jmp pin read_ended
-    ; TODO: Could remove this by moving read_ended to top of program
-    ; and using the wrap target to make this loop. We just need 
-    ; to take care that the program does not set the pindirs high
-    ; on startup.
-    jmp wait_for_read_end
-
-read_ended:
-    out pindirs, 8 side 0 ; TODO: Confirm that 0's are shifted into OSR
+    mov osr, null
+    wait 1 pin 9        ; Wait for ~IOR high
+    out pindirs, 8 side 0 ; Disable outputs and restore tranceiver direction.

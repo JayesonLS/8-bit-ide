@@ -23,6 +23,7 @@ if (TARGET tinyusb_device)
 
         pico_generate_pio_header(8bit_ide_drive ${CMAKE_CURRENT_LIST_DIR}/isaout.pio)
         pico_generate_pio_header(8bit_ide_drive ${CMAKE_CURRENT_LIST_DIR}/data_buffer.pio)
+        pico_generate_pio_header(8bit_ide_drive ${CMAKE_CURRENT_LIST_DIR}/control_registers.pio)
                 
         # Pull in our pico_stdlib which aggregates commonly used features
         target_link_libraries(8bit_ide_drive pico_stdlib hardware_pio hardware_dma)
