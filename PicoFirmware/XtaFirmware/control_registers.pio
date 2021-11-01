@@ -46,7 +46,7 @@
 ; a busy variant of the flags into the FIFO. There may be some tricky race conditions to
 ; deal with. Something to check the timing of.
 
-; TODO: This is no good - about 28 instructions to set up.
+; TODO: This is no good - about 28 instructions to set up read which is too long.
 .program control_regs
 .side_set 1 opt
     ; This program *MUST* be started at the wrap target.
@@ -60,9 +60,10 @@ address_2_write:
     irq 1           ; Trigger select interrupt.
     pull noblock    ; Get latest value from FIFO if any, otherwise X -> OSR
     out null, 16    ; Switch to busy variant of flags
-    in osr, 16
-    in osr, 16
-    mov x, isr  
+;    in osr, 16
+;    in osr, 16
+;    mov x, isr
+    mov x, osr
 
     wait 1 pin 10   ; Wait for ~IOW high.
     ; Fall through to wrap target.
@@ -99,7 +100,7 @@ address_2_read:
     out null, 8     ; Skip low 8 bits to get address 1 value
 
 do_read:
-    pull osr, x side 1  ; Get data, change tranceiver direction
+    mov osr, x side 1  ; Get data, change tranceiver direction
     out pins, 8         ; Set data
     mov osr, ~null
     out pindirs, 8      ; Set pindirs
@@ -115,7 +116,6 @@ do_read:
 ; 17 instructions.
 
 .program write_control_regs
-
 write_address_2:
     ; Write to address 2 is select controller
     irq 1							; Trigger select interrupt
@@ -144,17 +144,19 @@ write_address_3:
 wait_for_write_end:
     mov osr, pins
     jmp pin write_value				; Break if ~IOW has gone high.
-    mov isr, osr    ; Update previous value
+    mov isr, osr                    ; Update previous value
     jmp wait_for_write_end
 
 write_value:
-	; Should we clear IRQ here?
+    ; TODO: Should we clear IRQ here if the value is cleared? Same for DRQ?
+    ; If we don't need to be clearing DRQ/IRQ, then we can let write_address_2 fall through
+    ; to write_address_3 and remove a couple of instructions. 
     push block						; Send the last value read before ~IOW went high.
 
 ;-----------------------------------------------------------------------------------------
 ; Register 1 is a flags register. We must constantly pull from the FIFO to keep the
 ; register value.
-; 15 instructions and we aren't using live DMA/IRQ state.
+; 18 instructions and we aren't using live DMA/IRQ state.
 .program read_register_1
 .side_set 1 opt
 
@@ -172,8 +174,10 @@ wait_for_read_start:
     jmp !y wait_for_read_start		; Jump if address not 1
 
 do_read:
-    mov osr, x side 1				; Get data and change tranceiver direction. We will use DMA/interrupt
-									; to constantly feed the FIFO to avoid having to save the value to X.
+    in x, 26 side 1                 ; Load top bits from X, change tranceiver direction.
+    in osr, 2                       ; Load DRQ and IRQ into Y 
+    in x, 4                         ; Load 4 status bits from X
+    mov osr, isr
     out pins, 8						; Set data
     out pindirs, 8					; Set pindirs (high bits are in the next 8 bits of data.)
     wait 1 pin 9					; Wait for ~IOR high
@@ -212,20 +216,20 @@ do_read:
 wait_for_write:
 	wait 0 pin 10					; Wait for ~IOW low
 	jmp pin wait_for_write			; Wait for decode to go low
-	int 0 wait						; Trigger reset interupt and halt the program 
+	irq wait 0						; Trigger reset interupt and halt the program 
 
 .program write_address_2_external_decode
 wait_for_write:
 	wait 0 pin 10					; Wait for ~IOW low
 	jmp pin wait_for_write			; Wait for decode to go low
-	int 1							; Trigger select interupt
+	irq 1							; Trigger select interupt
 	wait 1 pin 10					; Wait for ~IOW high
 
-.program read_register _external_decode_assume_fifo_clear_safe
+.program read_register_external_decode_assume_fifo_clear_safe
 .side_set 1 opt
 wait_for_read_start:
     wait 0 pin 9					; Wait for ~IOR low
-	jmp pin wait_for_read			; Wait for decode to go low
+	jmp pin wait_for_read_start     ; Wait for decode to go low
 
 do_read:
     pull noblock side 1				; Get data and change tranceiver direction.
@@ -234,5 +238,3 @@ do_read:
     out pindirs, 8					; Set pindirs  (high pindirs in next 8 bits)
     wait 1 pin 9					; Wait for ~IOR high
     out pindirs, 8 side 0			; Restore pindirs and tranceiver direction. (low pindirs in next 8 bits)
-.wrap
-
