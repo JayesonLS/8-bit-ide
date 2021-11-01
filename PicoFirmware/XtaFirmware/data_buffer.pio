@@ -15,76 +15,7 @@
 ; You should have received a copy of the GNU General Public License
 ; along with this program.If not, see < https://www.gnu.org/licenses/>.
 
-;        uint data : num_data_bits;
-;        uint addr : num_addr_bits;
-;        uint aen : 1;
-;        uint inv_dack : 1;
-;        uint ingore1 : 1; //SPI_RX
-;        uint inv_iow : 1;
-;        uint ignore2 : 1; // SPI_SCK
-;        uint ignore3 : 1; // SPI_TX
-;        uint inv_ior : 1;
-;        uint inv_reset : 1;
-;        uint ignore4 : 1; // DATA_DIR
-;        uint ignore5 : 3; // Internal GPIOs.
-;        uint inv_cs : 1;
-;        uint irq : 1;
-;        uint drq : 1;
-
-; At 125MHz, 8ns per instruction.
-
-.program data_write
-wait_for_write_start:
-    jmp pin wait_for_write_start    ; Spin until ~IOW is low
-    mov osr, pins   ; Get current pin state
-    mov isr, osr    ; Save to previous value
-    ; TODO: could speed this up by placing data after other bits.
-    out null, 8     ; Skip data bits
-    out x, 3        ; Address and AEN to X (want all 0)
-    jmp x--, wait_for_write_start
-    ; TODO: Can speed this up by moving things closer together. In this case, could check AEN, Addr bits and ~CS in one step.
-    out null, 11     ; Skip to ~CS
-    out x, 1        ; ~CS to X (want 0)
-    jmp x--, wait_for_write_start
-    
-wait_for_write_end:
-    mov osr, pins
-    jmp pin write_value    ; Break if ~IOW has gone high.
-    mov isr, osr    ; Update previous value
-    jmp wait_for_write_end
-
-write_value:
-    push block      ; Send the last value read before ~IOW went high.
-
-.program data_read
-.side_set 1 opt
-wait_for_read_start:
-    jmp pin wait_for_read_start    ; Spin until ~IOR is low
-    mov osr, pins   ; Get current pin state
-    ; TODO: could speed this up by placing data after other bits.
-    out null, 8     ; Skip data bits
-    out x, 3        ; Address and AEN to X (want all 0)
-    jmp x--, wait_for_read_start
-    ; TODO: Can speed this up by moving things closer together. In this case, could check AEN, Addr bits and ~CS in one step.
-    out null, 11     ; Skip to ~CS
-    out x, 1        ; ~CS to X (want 0)
-    jmp x--, wait_for_read_start
-
-    ; Place data on the bus.
-    pull noblock side 1 ; Get data, change tranceiver direction
-    out pins, 8         ; Set data
-    mov osr, ~null
-    out pindirs, 8      ; Set pindirs
-
-wait_for_read_end:
-    jmp pin read_ended
-    jmp wait_for_read_end
-
-read_ended:
-    out pindirs, 8 side 0 ; TODO: Confirm that 0's are shifted into OSR
-
-
-; Possible pin reorder
+; Possible pin order
 ;        uint data : num_data_bits;
 ;        uint inv_dack : 1;
 ;        uint inv_ior : 1;
@@ -97,7 +28,8 @@ read_ended:
 ;        uint irq : 1;
 ;        uint inv_reset : 1;
 
-.program data_write_with_pin_reorder
+; 10 instructions
+.program data_write
 wait_for_write_start:
     mov osr, pins   ; Get current pin state
     mov isr, osr    ; Save to previous value
@@ -114,7 +46,9 @@ wait_for_write_end:
 write_value:
     push block      ; Send the last value read before ~IOW went high.
 
-.program data_read_with_pin_reorder
+
+; 12 instructions.
+.program data_read
 .side_set 1 opt
 wait_for_read_start:
     jmp pin wait_for_read_start    ; Spin until ~IOR is low
