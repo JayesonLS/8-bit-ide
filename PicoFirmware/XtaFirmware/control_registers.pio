@@ -21,6 +21,7 @@
 
 ; Possible pin reorder
 ;        uint data : num_data_bits;
+;		 uint data_dir : 1; data_dir here in case we want to side-set it with some pindirs. TODO: Programs will need updating.
 ;        uint inv_dack : 1;
 ;        uint inv_iow : 1; ; TODO: Update all programs for ~IOW being before ~IOR
 ;        uint inv_ior : 1;
@@ -30,8 +31,6 @@
 ;		 uint a0 : 1; 
 ;        uint drq : 1;
 ;        uint irq : 1;
-;
-;		 uint data_dir : 1;
 ;
 ;        uint inv_reset : 1;
 
@@ -164,38 +163,46 @@ write_value:
 ;
 ; 13 instructions.
 ; Up to 13 cycle delay to set up data (+ ~4 cycles in external delays)
-; Allowed delay ~25 cycles with 125MHz Pico & 10MHz ISA bus
+; Allowed total delay ~25 cycles with 125MHz Pico & 10MHz ISA bus
 ;-----------------------------------------------------------------------------------------
 .program read_register_1
-.side_set 3 opt						; Low to high: 22 data_dir, 23 vreg_mode (always 0), 24 end_read_signal
+.side_set 1 opt						; Side set maps to data_dir
 
 wait_for_read_start:
     pull noblock					; Keep read values up to date. If FIFO is empty,
     mov x, osr						; X is moved to OSR. So save read values in X.
-    ; For 1 cycle lower latency is needed we can do a "jmp pin wait_for_read_start" here.
+    ; For 1 cycle lower worst case latency we can do a "jmp pin wait_for_read_start" here on ~IOR.
     mov osr, pins					; in pins are configured to start at ~IOR
     out y, 4						; Shift ~IOR, ~CS, AEN and A1 into Y (want all 0)
     jmp y-- wait_for_read_start
-    out y, 1						; Shift A0 into Y
-    jmp !y wait_for_read_start		; Jump if address not 1
+    out y, 1                        ; Shift A0 into Y (want 1)
+    jmp !y wait_for_read_start      ; Jump if A0 not 1
     
 do_read:
-    in osr, 2  						; Shift in DRQ and IRQ from OSR
+    in osr, 2  						; Shift in DRQ and IRQ still sitting in OSR
     in x, 4	side 1					; Shift in the 4 status bits from X, reverse tranceiver direction (also signals pindir change)
     mov osr, isr					; (Setting tranceiver direction will result in other program setting pindirs)
-    out pins, 8						; Set data. Should be at same time as pindirs changing.
+    out pins, 8						; Set data.
     wait 1 pin 9					; Wait for ~IOR high
-    nop side 5        				; Signal to restore pindirs and tranceiver direction (don't change tranceiver direction ourselves).
+    irq 3 nowait                    ; Signal to restore pindirs and tranceiver direction.
 
+;-----------------------------------------------------------------------------------------
 ; Waits for data_dir to go high and then sets pindirs accordingly.
+; Waits for interrupt signal before restoring.
+;
+; in and out pin mappings should be 1 bit starting at data_dir
+; set pindir mapping should be 5 bits starting at D0
+; side set mapping should be 3 bits starting at D5
+;-----------------------------------------------------------------------------------------
 .program set_pindirs
 .side_set 3 opt pindirs				; The 3 bits are pindirs for D6-D8
-	wait 1 pin 0 [1]				; Wait on data_dir to go high (pin 22), then delay an extra cycle to give 
-                                    ; tranceiver plenty of time to reverse. Output data won't be ready earlier anyway.
-	set pindirs, 31 side 7			; Pindirs set to out for all 8 data bits
-	wait 1 pin 2					; Wait for signal to reverse pindirs (repurposed pin 24)
+	wait 1 pin 0    				; Wait on data_dir to go high (pin 22)
+	set pindirs, 31 side 7			; Pindirs set to out for all 8 data bits. 74LVC245 transceiver should have reversed by now.
+	wait 1 irq 3					; Wait for signal to reverse pindirs / tranceiver direction
 	set pindirs, 0 side 0			; Restore all pindirs.
-	mov pins, null					; Restore data_dir (tranceiver direction) 
+	mov pins, null					; Restore data_dir (tranceiver direction). Must not be before pindirs.
+                                    ; Could be at same time however but would require using pindir / pull down to effect this.
+                                    ; An option if we end up being an instruction over budget
 
 ;-----------------------------------------------------------------------------------------
 ; Register 2 is a configuration register. We don't need
@@ -203,25 +210,26 @@ do_read:
 ; send an ID sequence through the top bit.
 ; Setup code should init X to 0x0000FFFF to handle the case where
 ; the FIFO is accidentally empty.
-; 12 instructions.
+; 12 instructions. 9 cycle delay to set up data.
 .program read_register_2
 .side_set 1 opt
 wait_for_read_start:
     wait 0 pin 9					; Wait for ~IOR low
     mov osr, pins
     out null, 12					; Skip data, ~DACK, ~IOR and ~IOW
-    out y, 3						; ~CS, AEN and A0 to Y (want all 0)
+    out y, 2						; ~CS, AEN to Y (want all 0)
     jmp y-- wait_for_read_start
-    out y, 1						; A1 to Y (want 1)
+    out y, 0						; Reverse order A0 and A1 to Y (want 0b10 == addr 1)
+    jmp y-- wait_for_read_start
     jmp !y wait_for_read_start
 
 do_read:
     pull noblock side 1				; Get data and change tranceiver direction. We will use DMA/interrupt
                                     ; to constantly feed the FIFO to avoid having to save the value to X.
+                                    ; set_pindirs will change pindirs for us when the tranceiver direction changes.
     out pins, 8						; Set data
-    out pindirs, 8					; Set pindirs (high bits are in the next 8 bits of data.)
     wait 1 pin 9					; Wait for ~IOR high
-    out pindirs, 8 side 0			; Restore pindirs and tranceiver direction. (low bits are in the next 8 bits of data.)
+    irq 3 nowait                    ; Signal to restore pindirs and tranceiver direction.
 .wrap
 
 ;-----------------------------------------------------------------------------------------
