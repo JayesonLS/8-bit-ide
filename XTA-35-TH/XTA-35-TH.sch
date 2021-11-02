@@ -311,11 +311,11 @@ Text GLabel 8500 5450 0    50   Input ~ 0
 D7_3V3
 Wire Wire Line
 	7950 4450 8000 4450
-Text GLabel 9900 5450 2    50   Input ~ 0
+Text GLabel 9900 4850 2    50   Input ~ 0
 A0_3V3
 Wire Wire Line
 	8500 4550 8700 4550
-Text GLabel 9900 5350 2    50   Input ~ 0
+Text GLabel 9900 4650 2    50   Input ~ 0
 A1_3V3
 Wire Wire Line
 	8500 4650 8700 4650
@@ -323,19 +323,19 @@ Text Notes 7000 6950 0    39   ~ 0
 On GP26-28, there is a clamp diode\nto 3.3v, should one be needed.
 Wire Wire Line
 	8500 4850 8700 4850
-Text GLabel 9900 5050 2    50   Input ~ 0
+Text GLabel 9900 4950 2    50   Input ~ 0
 AEN_3V3
-Text GLabel 9900 4650 2    39   Input ~ 0
+Text GLabel 9900 5450 2    39   Input ~ 0
 ~DACK~_3V3
-Text GLabel 9900 4150 2    39   Input ~ 0
+Text GLabel 9900 4450 2    39   Input ~ 0
 ~DRQ~_3V3
 Text GLabel 9900 4350 2    39   Input ~ 0
 ~IRQ~_3V3
-Text GLabel 9900 4950 2    39   Input ~ 0
+Text GLabel 9900 5350 2    39   Input ~ 0
 ~IOR~_3V3
-Text GLabel 9900 4850 2    39   Input ~ 0
+Text GLabel 9900 5150 2    39   Input ~ 0
 ~IOW~_3V3
-Text GLabel 9900 4450 2    39   Input ~ 0
+Text GLabel 9900 4150 2    39   Input ~ 0
 ~RESET~_3V3
 Wire Wire Line
 	8500 4950 8700 4950
@@ -349,7 +349,7 @@ Wire Wire Line
 	8500 5450 8700 5450
 Wire Wire Line
 	8700 5350 8500 5350
-Text GLabel 9900 5150 2    39   Input ~ 0
+Text GLabel 9900 5050 2    39   Input ~ 0
 ~CS~_3V3
 Wire Wire Line
 	9900 5450 9700 5450
