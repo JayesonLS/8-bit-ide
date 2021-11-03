@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <pico/stdlib.h>
 #include <hardware/pio.h>
+#include <DeviceId.h>
 #include "logic_analyzer.h"
 
 static const LogicAnalyzer::CaptureType CAPTURE_TYPE = LogicAnalyzer::CaptureType::Sample;
@@ -79,56 +80,14 @@ void OutputSamples(const LogicAnalyzer &logicAnalyzer)
 
 #include <hardware/adc.h>
 #include <cmath>
-void DoAdcNoiseTest()
+void TestDeviceId()
 {
     DelayAndBlink(2);
 
-    static const size_t SAMPLE_COUNT = 16*1024;
-
-    std::vector<uint16_t> samples;
-    samples.reserve(SAMPLE_COUNT);
-
-    adc_init();
-    adc_gpio_init(29);
-    adc_select_input(3);
-
-    sleep_ms(1000);
-
-    adc_read();
-    adc_read();
-    adc_read();
-    adc_read();
-
-    double sum = 0;
-
-    for (size_t i = 0; i < SAMPLE_COUNT; i++)
+    for (int i = 0; i < 256; i++)
     {
-        uint16_t val = adc_read();
-        samples.push_back(val);
-        sum += val;
-    }
-
-    //samples.erase(samples.begin());
-
-
-    double mean = sum / (double)samples.size();
-    double sdSum = 0;
-
-    for (size_t i = 0; i <= samples.size(); i++)
-    {
-        double delta = samples[i] - mean;
-        sdSum += delta * delta;
-    }
-
-    double sd = std::sqrt(sdSum / (double)samples.size());
-
-    printf("Mean: %f SD: %f\n", mean, sd);
-
-    for (size_t i = 0; i < samples.size(); i++)
-    {
-        static const float conversion_factor = 3.3f / (1 << 12) * 3;
-        printf("Sample: %d %0.3fV\n", samples[i], samples[i] * conversion_factor);
-
+        DeviceId id = DeviceId::GenerateNewUnique();
+        printf("%02X%02X%02X%02X\n", id.GetSerialId()[0], id.GetSerialId()[1], id.GetSerialId()[2], id.GetSerialId()[3]);
     }
 }
 
@@ -139,7 +98,7 @@ int main()
     InitLed();
     SetLed(true);
 
-    DoAdcNoiseTest();
+    TestDeviceId();
 
     LogicAnalyzer logicAnalyzer(pio1, CAPTURE_TYPE, CAPTURE_MAX_SAMPLES);
     logicAnalyzer.InitPins();

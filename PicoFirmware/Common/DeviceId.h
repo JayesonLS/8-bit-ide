@@ -14,6 +14,7 @@
 // along with this program.If not, see < https://www.gnu.org/licenses/>.
 
 #include <pico/stdlib.h>
+#include <sha1/sha1.h>
 
 class DeviceId
 {
@@ -24,17 +25,17 @@ private:
     static const size_t GENERATE_REPEAT_COUNT = 2;
     static const size_t GENERATE_ADC_SAMPLE_COUNT = 4096;
 
-    uint16_t serialId[NUM_SERIAL_ID_WORDS] aligned (sizeof(uint64_t));
+    uint16_t serialId[NUM_SERIAL_ID_WORDS] __attribute__ ((aligned (sizeof(uint64_t))));
     uint8_t guid[NUM_GUID_BYTES];
     uint32_t checkHash; // Must be at the end of the data.
 
-    uint32_t CalulateCheckHash();
+    uint32_t CalulateCheckHash() const;
 
 public:
-    bool IsValid();  
-    bool IsUnique();
+    bool IsValid() const;  
+    bool IsUnique() const;
 
-    const uint16_t *GetSerialId() { return serialId; }
+    const uint16_t *GetSerialId() const { return serialId; }
 
-    DeviceId GenerateNewUnique();
+    static DeviceId GenerateNewUnique();
 };

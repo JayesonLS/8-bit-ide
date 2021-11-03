@@ -13,6 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.If not, see < https://www.gnu.org/licenses/>.
 
+#include <string.h>
 #include <hardware/adc.h>
 #include "DeviceId.h"
 
@@ -23,7 +24,7 @@ static_assert(sizeof(DeviceId) == 32);
 // TODO: We will need to put this somewhere where other code can get to it.
 // TODO: This is probably a bit heavy and uses a bunch of stack space. We do
 // already have the code though.
-static uint32_t HashBytes32(uint8_t *data, size_t size)
+static uint32_t HashBytes32(const void *data, size_t size)
 {
     static const int HASH_BYTES = 20;
 
@@ -31,7 +32,7 @@ static uint32_t HashBytes32(uint8_t *data, size_t size)
     uint8_t results[HASH_BYTES];
 
     SHA1Init(&context);
-    SHA1Update(&context, data, size);
+    SHA1Update(&context, (uint8_t *)data, size);
     SHA1Final(results, &context);
 
     uint32_t result = 0;
@@ -44,20 +45,20 @@ static uint32_t HashBytes32(uint8_t *data, size_t size)
     return result;
 }
 
-/*private*/ uint32_t DeviceId::CalulateCheckHash()
+/*private*/ uint32_t DeviceId::CalulateCheckHash() const
 {    
-    static const HASH_SIZE = sizeof(DeviceId) - sizeof(checkHash);
+    static const size_t HASH_SIZE = sizeof(DeviceId) - sizeof(checkHash);
     static_assert(HASH_SIZE > 0 && HASH_SIZE % sizeof(uint32_t) == 0);
 
-    return HashBytes32(&this, HASH_SIZE);
+    return HashBytes32(this, HASH_SIZE);
 }
 
-bool DeviceId::IsValid()
+bool DeviceId::IsValid() const
 {
-    return CalulateCheckHash() == checkHashl
+    return CalulateCheckHash() == checkHash;
 }
 
-bool DeviceId::IsUnique()
+bool DeviceId::IsUnique() const
 {
     for (size_t i = 0; i < NUM_GUID_BYTES; i++)
     {
@@ -74,7 +75,7 @@ bool DeviceId::IsUnique()
 /*static*/ DeviceId DeviceId::GenerateNewUnique()
 {
     DeviceId result;
-    memset (&result, 0, sizeof(result));
+    memset(&result, 0, sizeof(result));
 
     // We are going to use the ADC to sample the VSYS voltage input.
     // This input is VSYS / 3 ~= 1.67V and will return values around 1024
@@ -112,7 +113,7 @@ bool DeviceId::IsUnique()
 
             for (size_t mergeIndex = 0; mergeIndex < NUM_GUID_BYTES; mergeIndex++)
             {
-                guid[mergeIndex] ^= results[mergeIndex];
+                result.guid[mergeIndex] ^= results[mergeIndex];
             }
         }
     }
@@ -126,39 +127,46 @@ bool DeviceId::IsUnique()
 
         // Start with the current hash bytes. We will keep hashing these numbers until
         // we generate a valid serialId.
-        memcpy(results, guid, HASH_BYTES);
+        memcpy(results, result.guid, HASH_BYTES);
 
         for (;;)
         {
             // Rehash the GUID.
             SHA1Init(&context);
-            SHA1Update(&context, (uint8_t *)&val, sizeof(uint16_t));
+            SHA1Update(&context, results, HASH_BYTES);
             SHA1Final(results, &context);
 
             // Combine into serialId.
             static_assert(HASH_BYTES % sizeof(uint16_t) == 0);
-            memset(serialId, 0, sizeof(serialId);
+            memset(result.serialId, 0, sizeof(serialId));
             for (size_t i = 0; i < HASH_BYTES / sizeof(uint16_t); i++)
             {
-                serialId[i % NUM_SERIAL_ID_WORDS] ^= ((uint16_t *)results)[i];
+                result.serialId[i % NUM_SERIAL_ID_WORDS] ^= ((uint16_t *)results)[i];
             }
 
             // Check to see if the first 16 bits are repeated.
-            static_assert(sizeof(serialId) == 64);
-            uint64_t serialId64 = *((uint64_t *)serialId);
-            for (...)
-            { 
-                if (...)
+            static_assert(sizeof(serialId) == sizeof(uint64_t));
+            uint64_t serialId64 = *((uint64_t *)result.serialId);
+            bool haveBitSequenceRepeat = false;
+            for (int count = 63; count; count--)
+            {
+                serialId64 = (serialId64 >> 1) | (serialId64 << 63);
+
+                if ((int16_t)serialId64 == result.serialId[0])
                 {
-                    no good, 
-                    continue;
+                    // We have a repeat of the first 16 bits, so generate another serialId.
+                    haveBitSequenceRepeat = true;
                 }
             }
-
-            // Serial ID is good so break.
-            break;
+            if (!haveBitSequenceRepeat)
+            {
+                // Serial ID is good so break. 
+                break;
+            }
         }
     }
 
-    checkHash = CalulateCheckHash();
+    result.checkHash = result.CalulateCheckHash();
+
+    return result;
 }
