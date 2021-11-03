@@ -146,9 +146,13 @@ bool DeviceId::IsUnique() const
 
             // Check to see if the first 16 bits are repeated.
             static_assert(sizeof(serialId) == sizeof(uint64_t));
-            uint64_t serialId64 = *((uint64_t *)result.serialId);
+            uint64_t serialId64 = 0;
+            for (size_t i = 0; i < NUM_SERIAL_ID_WORDS; i++)
+            {
+                serialId64 |= ((uint64_t)(result.serialId[i])) << (i * 16);
+            }
             bool haveBitSequenceRepeat = false;
-            for (int count = 63; count; count--)
+            for (size_t count = 63; count; count--)
             {
                 serialId64 = (serialId64 >> 1) | (serialId64 << 63);
 
