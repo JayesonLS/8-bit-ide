@@ -116,18 +116,19 @@ do_read:
 ; the read value for register 1 to indicate busy. Should probably dedicate a CPU to this.
 ; TODO: We must start this program at the "wait 1 pin 10" line (one before the wrap target)
 ; 17 instructions.
-
+;
+; We should skip the first instruction on program start.
 .program write_control_regs
 write_address_2:
     ; Write to address 2 is select controller
-    irq 1							; Trigger select interrupt
+    irq nowait 1				    ; Trigger select interrupt
     wait 1 pin 10                   ; Wait for ~IOW high
 
 .wrap_target
 wait_for_write_start:
     wait 0 pin 10                   ; Wait for ~IOW low
     mov osr, pins
-    out null, 12					; Skip data, ~DACK, ~IOR and ~IOW
+    out null, 12					; Skip data, data_dir, ~DACK, ~IOR and ~IOW
     out y, 2						; ~CS and AEN to Y (want both 0)
     jmp y-- wait_for_write_start
     out y, 2						; Address to Y
@@ -152,7 +153,8 @@ wait_for_write_end:
 write_value:
     ; TODO: Should we clear IRQ here if the value is cleared? Same for DRQ?
     ; If we don't need to be clearing DRQ/IRQ, then we can let write_address_2 fall through
-    ; to write_address_3 and remove a couple of instructions. 
+    ; to write_address_3, move the push block to the top and remove the bottom jump.
+    ; (Save 2 instructions) 
     push block						; Send the last value read before ~IOW went high.
 
 ;-----------------------------------------------------------------------------------------
