@@ -25,7 +25,7 @@ if (TARGET tinyusb_device)
         pico_generate_pio_header(logic_analyzer ${CMAKE_CURRENT_LIST_DIR}/logic_analyzer.pio)
                 
         # Pull in needed libraries.
-        target_link_libraries(logic_analyzer pico_stdlib hardware_pio hardware_dma)
+        target_link_libraries(logic_analyzer pico_stdlib hardware_pio hardware_dma hardware_adc)
     
         # enable usb output, disable uart output
         pico_enable_stdio_usb(logic_analyzer 1)
