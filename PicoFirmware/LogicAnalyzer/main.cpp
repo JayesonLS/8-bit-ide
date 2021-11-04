@@ -91,8 +91,15 @@ void TestDeviceId()
     }
 }
 
+#include <ff.h>
+#include <diskio.h>
+
+extern int tf_main();
+
 int main()
 {
+    tf_main();
+
     stdio_init_all();
 
     InitLed();

@@ -22,6 +22,7 @@ if (TARGET tinyusb_device)
         add_executable(logic_analyzer
                 main.cpp
                 logic_analyzer.cpp
+                ../Common/tf_card/tf_main.cpp
                 )
 
         pico_generate_pio_header(logic_analyzer ${CMAKE_CURRENT_LIST_DIR}/logic_analyzer.pio)

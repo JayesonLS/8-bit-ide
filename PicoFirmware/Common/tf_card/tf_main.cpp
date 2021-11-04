@@ -3,7 +3,7 @@
 
 #include "pico/stdlib.h"
 #include "hardware/uart.h"
-#include "fatfs/ff.h"
+#include "ff.h"
 
 // Set PRE_ALLOCATE true to pre-allocate file clusters.
 const bool PRE_ALLOCATE = true;
@@ -55,7 +55,10 @@ void init_spi(void)
 }
 */
 
-int main()
+extern void DelayAndBlink(uint seconds);
+
+
+int tf_main()
 {
     FATFS fs;
     FIL fil;
@@ -74,22 +77,24 @@ int main()
     stdio_init_all();
 
     // Initialise UART 0
-    uart_init(uart0, 115200);
-    // Set the GPIO pin mux to the UART - 0 is TX, 1 is RX
-    gpio_set_function(0, GPIO_FUNC_UART);
-    gpio_set_function(1, GPIO_FUNC_UART);
+//    uart_init(uart0, 115200);
+//    // Set the GPIO pin mux to the UART - 0 is TX, 1 is RX
+//    gpio_set_function(0, GPIO_FUNC_UART);
+//    gpio_set_function(1, GPIO_FUNC_UART);
 
     const uint32_t LED_PIN = 25;
     gpio_init(LED_PIN);
     gpio_set_dir(LED_PIN, GPIO_OUT);
 
     // Discard any input.
-    while (uart_is_readable(uart0)) {
-        uart_getc(uart0);
-    }
-    printf("\n");
-    printf("Type any character to start\n");
-    while (!uart_is_readable_within_us(uart0, 1000));
+//    while (uart_is_readable(uart0)) {
+//        uart_getc(uart0);
+//    }
+//    printf("\n");
+//    printf("Type any character to start\n");
+//    while (!uart_is_readable_within_us(uart0, 1000));
+
+	DelayAndBlink(2);
 
     printf("=====================\n");
     printf("== pico_fatfs_test ==\n");
