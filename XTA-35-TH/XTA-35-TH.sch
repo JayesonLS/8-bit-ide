@@ -291,21 +291,21 @@ F 3 "" H 10150 3250 50  0001 C CNN
 $EndComp
 Wire Wire Line
 	10150 3250 10150 2550
-Text GLabel 8150 1750 0    50   Input ~ 0
+Text GLabel 8150 1550 0    50   Input ~ 0
 D0_3V3
-Text GLabel 8150 1850 0    50   Input ~ 0
+Text GLabel 8150 1750 0    50   Input ~ 0
 D1_3V3
-Text GLabel 8150 1950 0    50   Input ~ 0
+Text GLabel 8150 1850 0    50   Input ~ 0
 D2_3V3
-Text GLabel 8150 2050 0    50   Input ~ 0
+Text GLabel 8150 1950 0    50   Input ~ 0
 D3_3V3
-Text GLabel 8150 2250 0    50   Input ~ 0
+Text GLabel 8150 2050 0    50   Input ~ 0
 D4_3V3
-Text GLabel 8150 2350 0    50   Input ~ 0
+Text GLabel 8150 2250 0    50   Input ~ 0
 D5_3V3
-Text GLabel 8150 2450 0    50   Input ~ 0
+Text GLabel 8150 2350 0    50   Input ~ 0
 D6_3V3
-Text GLabel 8150 2550 0    50   Input ~ 0
+Text GLabel 8150 2450 0    50   Input ~ 0
 D7_3V3
 Text GLabel 9550 2450 2    50   Input ~ 0
 A0_3V3
@@ -337,8 +337,6 @@ Wire Wire Line
 	8150 2350 8350 2350
 Wire Wire Line
 	8350 2450 8150 2450
-Wire Wire Line
-	8150 2550 8350 2550
 Wire Wire Line
 	9550 2550 9350 2550
 Wire Wire Line
@@ -688,7 +686,7 @@ Wire Wire Line
 Wire Wire Line
 	9550 2250 9350 2250
 Wire Wire Line
-	10550 1750 10450 1750
+	7500 2550 7600 2550
 Wire Wire Line
 	9550 2050 9350 2050
 $Comp
@@ -924,8 +922,6 @@ Text Notes 600  6350 0    79   ~ 0
 POWER
 Text Notes 6650 850  0    79   ~ 0
 RASPBERRY\nPI PICO
-Wire Notes Line
-	11100 550  6600 550 
 Wire Notes Line
 	6600 550  6600 3600
 Wire Notes Line
@@ -1261,70 +1257,40 @@ Wire Wire Line
 	7850 1050 8350 1050
 Wire Wire Line
 	7850 950  8350 950 
-Wire Wire Line
-	9350 1850 9550 1850
 Text GLabel 3700 4600 2    50   Input ~ 0
 A0
-Text GLabel 9550 1850 2    39   Input ~ 0
-~DRIVE_ACTIVE~_3V3
 Wire Wire Line
 	7850 1450 8350 1450
 Text Label 9350 950  0    39   ~ 0
 VBUS
-Text Label 7250 2200 1    39   ~ 0
-BOOT_OVERRIDE
-$Comp
-L power:GND #PWR0108
-U 1 1 61AEF52F
-P 7250 3250
-F 0 "#PWR0108" H 7250 3000 50  0001 C CNN
-F 1 "GND" H 7255 3077 50  0000 C CNN
-F 2 "" H 7250 3250 50  0001 C CNN
-F 3 "" H 7250 3250 50  0001 C CNN
-	1    7250 3250
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	7250 2800 7250 3250
-$Comp
-L Switch:SW_Push SW1
-U 1 1 619AC049
-P 7250 2600
-F 0 "SW1" H 7250 2750 50  0000 C CNN
-F 1 "Boot Override" H 7250 2500 50  0000 C CNN
-F 2 "Button_Switch_THT:SW_PUSH_6mm" H 7250 2800 50  0001 C CNN
-F 3 "~" H 7250 2800 50  0001 C CNN
-	1    7250 2600
-	0    -1   1    0   
-$EndComp
 $Comp
 L Device:R R4
 U 1 1 61A94ADE
-P 10450 2050
-F 0 "R4" V 10400 1850 50  0000 C CNN
-F 1 "10K" V 10450 2050 50  0000 C CNN
-F 2 "Resistor_SMD:R_1206_3216Metric" V 10380 2050 50  0001 C CNN
-F 3 "~" H 10450 2050 50  0001 C CNN
-F 4 "C17902" V 10450 2050 50  0001 C CNN "LCSC"
-	1    10450 2050
-	1    0    0    -1  
+P 7600 2850
+F 0 "R4" V 7550 2650 50  0000 C CNN
+F 1 "10K" V 7600 2850 50  0000 C CNN
+F 2 "Resistor_SMD:R_1206_3216Metric" V 7530 2850 50  0001 C CNN
+F 3 "~" H 7600 2850 50  0001 C CNN
+F 4 "C17902" V 7600 2850 50  0001 C CNN "LCSC"
+	1    7600 2850
+	-1   0    0    -1  
 $EndComp
 Wire Wire Line
-	10450 2200 10450 3250
+	7600 3000 7600 3250
 Wire Wire Line
-	10450 1900 10450 1750
+	7600 2700 7600 2550
 $Comp
 L power:GND #PWR010
 U 1 1 61A95646
-P 10450 3250
-F 0 "#PWR010" H 10450 3000 50  0001 C CNN
-F 1 "GND" H 10455 3077 50  0000 C CNN
-F 2 "" H 10450 3250 50  0001 C CNN
-F 3 "" H 10450 3250 50  0001 C CNN
-	1    10450 3250
-	1    0    0    -1  
+P 7600 3250
+F 0 "#PWR010" H 7600 3000 50  0001 C CNN
+F 1 "GND" H 7605 3077 50  0000 C CNN
+F 2 "" H 7600 3250 50  0001 C CNN
+F 3 "" H 7600 3250 50  0001 C CNN
+	1    7600 3250
+	-1   0    0    -1  
 $EndComp
-Text GLabel 10550 1750 2    50   Input ~ 0
+Text GLabel 7500 2550 0    50   Input ~ 0
 DATA_DIR
 Wire Notes Line
 	7550 3600 6600 3600
@@ -1338,13 +1304,47 @@ Wire Wire Line
 	7850 1350 8350 1350
 Wire Wire Line
 	7850 1250 8350 1250
-Wire Wire Line
-	7250 1550 7250 2400
-Wire Wire Line
-	7250 1550 8350 1550
-Connection ~ 10450 1750
-Wire Wire Line
-	10450 1750 9350 1750
+Connection ~ 7600 2550
 Text Label 10000 1950 0    39   ~ 0
 RUN
+Wire Wire Line
+	8350 1550 8150 1550
+Wire Wire Line
+	7600 2550 8350 2550
+Wire Notes Line
+	11100 550  6600 550 
+$Comp
+L Switch:SW_Push SW1
+U 1 1 619AC049
+P 10700 2600
+F 0 "SW1" H 10700 2750 50  0000 C CNN
+F 1 "Boot Override" H 10800 2500 50  0000 C CNN
+F 2 "Button_Switch_THT:SW_PUSH_6mm" H 10700 2800 50  0001 C CNN
+F 3 "~" H 10700 2800 50  0001 C CNN
+	1    10700 2600
+	0    -1   1    0   
+$EndComp
+Wire Wire Line
+	10700 2800 10700 3250
+$Comp
+L power:GND #PWR0108
+U 1 1 61AEF52F
+P 10700 3250
+F 0 "#PWR0108" H 10700 3000 50  0001 C CNN
+F 1 "GND" H 10705 3077 50  0000 C CNN
+F 2 "" H 10700 3250 50  0001 C CNN
+F 3 "" H 10700 3250 50  0001 C CNN
+	1    10700 3250
+	1    0    0    -1  
+$EndComp
+Text Label 10250 1850 0    39   ~ 0
+BOOT_OVERRIDE
+Wire Wire Line
+	9350 1750 9550 1750
+Text GLabel 9550 1750 2    39   Input ~ 0
+~DRIVE_ACTIVE~_3V3
+Wire Wire Line
+	9350 1850 10700 1850
+Wire Wire Line
+	10700 1850 10700 2400
 $EndSCHEMATC
