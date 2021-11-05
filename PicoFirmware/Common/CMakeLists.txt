@@ -18,4 +18,6 @@ target_link_libraries(CommonLib INTERFACE
     hardware_adc
     hardware_clocks
     hardware_spi
+    hardware_pio
+    hardware_dma
 )
