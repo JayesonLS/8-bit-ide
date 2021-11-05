@@ -1,1 +1,0 @@
-copy %~dp0\build\XtaFirmware.uf2 g:\

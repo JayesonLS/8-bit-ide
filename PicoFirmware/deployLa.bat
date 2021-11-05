@@ -1,0 +1,1 @@
+copy %~dp0\build\LogicAnalyzer\LogicAnalyzer.uf2 g:\
