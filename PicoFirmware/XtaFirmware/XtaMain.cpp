@@ -15,26 +15,10 @@
 
 #include <stdio.h>
 #include "pico/stdlib.h"
-#include "hardware/pio.h"
-#include "isaout.pio.h"
 
 int main()
 {
     stdio_init_all();
-
-    PIO pio = pio0;
-    uint programOffset = pio_add_program(pio, &isaout_program);
-    uint outSm = pio_claim_unused_sm(pio, true);
-    isaout_program_init(pio, outSm, programOffset, 0, 8, 2, 10);
-
-    for (int ledValue = 0; ; ledValue++)
-    {
-        //printf("8bit_ide_drive heartbeat.\n");
-
-        pio_sm_put_blocking(pio, outSm, ledValue); 
-        
-//        sleep_ms(100);
-    }
 
     return 0;
 }

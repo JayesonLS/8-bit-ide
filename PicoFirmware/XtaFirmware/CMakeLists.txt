@@ -24,7 +24,6 @@ if (TARGET tinyusb_device)
                 XtaMain.cpp
                 )
 
-        pico_generate_pio_header(XtaFirmware ${CMAKE_CURRENT_LIST_DIR}/isaout.pio)
         pico_generate_pio_header(XtaFirmware ${CMAKE_CURRENT_LIST_DIR}/DataBuffer.pio)
         pico_generate_pio_header(XtaFirmware ${CMAKE_CURRENT_LIST_DIR}/ControlRegisters.pio)
                 
