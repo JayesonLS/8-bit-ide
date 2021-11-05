@@ -10,6 +10,9 @@ set(CMAKE_CXX_STANDARD 17)
 # Initialize the SDK
 pico_sdk_init()
 
+# Include common library
+add_subdirectory(../Common build)
+
 add_compile_options(-Wall
         -Wno-format          # int != int32_t as far as the compiler is concerned because gcc has int32_t as long int
         -Wno-unused-function # we have some for the docs that aren't called
@@ -26,7 +29,7 @@ if (TARGET tinyusb_device)
         pico_generate_pio_header(xta_firmware ${CMAKE_CURRENT_LIST_DIR}/control_registers.pio)
                 
         # Pull in our pico_stdlib which aggregates commonly used features
-        target_link_libraries(xta_firmware pico_stdlib hardware_pio hardware_dma)
+        target_link_libraries(xta_firmware common_lib pico_stdlib hardware_pio hardware_dma)
     
         # enable usb output, disable uart output
         pico_enable_stdio_usb(xta_firmware 1)
