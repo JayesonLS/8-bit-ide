@@ -13,31 +13,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.If not, see < https://www.gnu.org/licenses/>.
 
-#pragma once
-
 #include <pico/stdlib.h>
-#include <sha1/sha1.h>
+#include "IoConfig.h"
 
-class DeviceId
+/*static*/ void IoConfig::PreInitialzieIo()
 {
-    static const size_t NUM_SERIAL_ID_WORDS = 4;
-    static const size_t NUM_GUID_BYTES = 20;
-    
-private:
-    static const size_t GENERATE_REPEAT_COUNT = 2;
-    static const size_t GENERATE_ADC_SAMPLE_COUNT = 4096;
+    sio_hw->gpio_oe_clr = INITIAL_INPUTS;
+    sio_hw->gpio_clr = INITIAL_INPUTS | INITIAL_OUTPUTS_LOW;
+    sio_hw->gpio_set = INITIAL_OUTPUTS_HIGH;
+    sio_hw->gpio_oe_set = INITIAL_OUTPUTS;
 
-    uint16_t serialId[NUM_SERIAL_ID_WORDS];
-    uint8_t guid[NUM_GUID_BYTES];
-    uint32_t checkHash; // Must be at the end of the data.
-
-    uint32_t CalulateCheckHash() const;
-
-public:
-    bool IsValid() const;  
-    bool IsUnique() const;
-
-    const uint16_t *GetSerialId() const { return serialId; }
-
-    static DeviceId GenerateNewUnique();
-};
+    // TODO: Do we need to set the IO functions here with gpio_set_function()?
+}

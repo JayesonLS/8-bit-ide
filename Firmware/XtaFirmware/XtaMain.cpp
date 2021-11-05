@@ -14,11 +14,14 @@
 // along with this program.If not, see < https://www.gnu.org/licenses/>.
 
 #include <stdio.h>
-#include "pico/stdlib.h"
+#include <pico/stdlib.h>
+#include <IoConfig.h>
 
 int main()
 {
     stdio_init_all();
+
+    IoConfig::PreInitialzieIo();
 
     return 0;
 }
