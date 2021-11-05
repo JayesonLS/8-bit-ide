@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.12)
 # Pull in SDK (must be before project)
 include(pico_sdk_import.cmake)
 
-project(logic_analyzer C CXX ASM)
+project(LogicAnalyzer C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
@@ -28,7 +28,7 @@ if (TARGET tinyusb_device)
         pico_generate_pio_header(LogicAnalyzer ${CMAKE_CURRENT_LIST_DIR}/logic_analyzer.pio)
                 
         # Pull in needed libraries.
-        target_link_libraries(LogicAnalyzer common_lib pico_stdlib hardware_pio hardware_dma hardware_adc)
+        target_link_libraries(LogicAnalyzer CommonLib pico_stdlib hardware_pio hardware_dma hardware_adc)
     
         # enable usb output, disable uart output
         pico_enable_stdio_usb(LogicAnalyzer 1)

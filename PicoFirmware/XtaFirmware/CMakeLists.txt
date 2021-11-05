@@ -29,7 +29,7 @@ if (TARGET tinyusb_device)
         pico_generate_pio_header(XtaFirmware ${CMAKE_CURRENT_LIST_DIR}/control_registers.pio)
                 
         # Pull in our pico_stdlib which aggregates commonly used features
-        target_link_libraries(XtaFirmware common_lib pico_stdlib hardware_pio hardware_dma)
+        target_link_libraries(XtaFirmware CommonLib pico_stdlib hardware_pio hardware_dma)
     
         # enable usb output, disable uart output
         pico_enable_stdio_usb(XtaFirmware 1)
