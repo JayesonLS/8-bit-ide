@@ -20,7 +20,7 @@ add_compile_options(-Wall
 
 if (TARGET tinyusb_device)
         add_executable(logic_analyzer
-                main.cpp
+                la_main.cpp
                 logic_analyzer.cpp
                 )
 
