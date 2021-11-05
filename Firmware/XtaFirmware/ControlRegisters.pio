@@ -120,7 +120,7 @@ wait_for_read_start:
     jmp !y wait_for_read_start      ; Jump if A0 not 1
     
 do_read:
-    in osr, 2  						; Shift in DRQ and IRQ still sitting in OSR
+    mov isr, ~osr                   ; Copy with invert ~DRQ and ~IRQ still sitting in OSR
     in x, 4	side 1					; Shift in the 4 status bits from X, reverse tranceiver direction (also signals pindir change)
     mov osr, isr					; (Setting tranceiver direction will result in other program setting pindirs)
     out pins, 8						; Set data.
