@@ -1,1 +1,1 @@
-copy %~dp0\build\xta_firmware.uf2 g:\
+copy %~dp0\build\XtaFirmware.uf2 g:\
