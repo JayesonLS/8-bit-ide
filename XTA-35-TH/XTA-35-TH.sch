@@ -307,11 +307,11 @@ Text GLabel 8150 2350 0    50   Input ~ 0
 D6_3V3
 Text GLabel 8150 2450 0    50   Input ~ 0
 D7_3V3
-Text GLabel 9550 2450 2    50   Input ~ 0
+Text GLabel 9550 2350 2    50   Input ~ 0
 A0_3V3
 Wire Wire Line
 	8150 1950 8350 1950
-Text GLabel 9550 2350 2    50   Input ~ 0
+Text GLabel 9550 2450 2    50   Input ~ 0
 A1_3V3
 Wire Wire Line
 	8150 2050 8350 2050
@@ -1229,15 +1229,15 @@ Text Label 9350 1450 0    39   ~ 0
 ADC_VREF
 Text Label 9350 1250 0    39   ~ 0
 3V3_EN
-Text GLabel 2700 4500 0    50   Input ~ 0
-A1_3V3
 Text GLabel 2700 4600 0    50   Input ~ 0
+A1_3V3
+Text GLabel 2700 4500 0    50   Input ~ 0
 A0_3V3
 Text GLabel 2700 4800 0    39   Input ~ 0
 ~DACK~_3V3
 Text GLabel 2700 4900 0    50   Input ~ 0
 AEN_3V3
-Text GLabel 3700 4500 2    50   Input ~ 0
+Text GLabel 3700 4600 2    50   Input ~ 0
 A1
 Text GLabel 3700 4900 2    50   Input ~ 0
 AEN
@@ -1257,7 +1257,7 @@ Wire Wire Line
 	7850 1050 8350 1050
 Wire Wire Line
 	7850 950  8350 950 
-Text GLabel 3700 4600 2    50   Input ~ 0
+Text GLabel 3700 4500 2    50   Input ~ 0
 A0
 Wire Wire Line
 	7850 1450 8350 1450
