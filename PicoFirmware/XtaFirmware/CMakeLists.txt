@@ -18,7 +18,7 @@ add_compile_options(-Wall
 
 if (TARGET tinyusb_device)
         add_executable(8bit_ide_drive
-                8bit_ide_drive.cpp
+                xta_main.cpp
                 )
 
         pico_generate_pio_header(8bit_ide_drive ${CMAKE_CURRENT_LIST_DIR}/isaout.pio)
