@@ -1,0 +1,219 @@
+; Test PIO program for outputting data with approximate ISA timing.
+;
+; Copyright (C) 2021 Titanium Studios Pty Ltd 
+; 
+; This program is free software : you can redistribute it and/or modify
+; it under the terms of the GNU General Public License as published by
+; the Free Software Foundation, either version 3 of the License, or
+; (at your option) any later version.
+; 
+; This program is distributed in the hope that it will be useful,
+; but WITHOUT ANY WARRANTY; without even the implied warranty of
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
+; GNU General Public License for more details.
+; 
+; You should have received a copy of the GNU General Public License
+; along with this program.If not, see < https://www.gnu.org/licenses/>.
+;
+; IBM DBA8 Registers:
+; 320 Read: Read data from drive
+; 320 Write: Write data to drive
+; 322 Read: Read attachment status register
+;   Bit 7-5: Reserved
+;   Bit 4: Data request
+;   Bit 5: Direction
+;   Bit 3: Busy
+;   Bit 1: Interrupt request
+;       Set at end of command. If interrupt enabled, interrupt triggered.
+;       Cleared when register is read.
+;   Bit 0: Transfer enable
+; 322 Write: Write attachment control register
+;   Bit 7: 1, then 0 = hardware reset sequence
+;   Bit 6-2: Must be written as 0
+;   Bit 1: Interrupt enable
+;   Bit 0: DMA enable
+; 324 Read: Read interrupt status register
+;   One of the bits will be set to indicate end of command status
+;   Looks like all 0 = no error
+; 324 Write: Write attention register
+;   Bit 7: Command control block request
+;   Bit 6: Command specify block request
+;   Bit 5: Sense summary block request
+;   Bit 4: Data request
+;   Bit 3-0: Must be written as 0
+;
+; Implementation notes:
+;   - Most fairly straightforward.
+;   - Read attachment status register must clear interrupt request bit.
+;     Will have secondary CPU clear the actual interrupt and the bit in this register.
+;   - Write to attention register must promptly update attachemnt control register.
+
+; At 125MHz, 8ns per instruction.
+; Max read setup time is 192ns = 24 cycles. Subtract 4 cycles for
+; aliasing delay, two LVC propogation delays, and  possibly one Pico
+; propogation delay (4 cycles)
+; Therefore max instructions to set up a read is 20.
+
+; Proposed pin ordering
+;        uint data : num_data_bits;
+;		 uint data_dir : 1; data_dir here in case we want to side-set it with some pindirs.
+;        uint inv_dack : 1;
+;        uint inv_iow : 1;
+;        uint inv_ior : 1;
+;        uint inv_cs : 1;
+;        uint aen : 1;
+;        uint a1 : 1; On DBA8, A1 actually == A2.
+;		 uint a0 : 1; On DBA8, A0 actually == A1. Actual A0 is never used.
+;        uint drq : 1;
+;        uint irq : 1;
+;
+;        uint inv_reset : 1;
+
+;-----------------------------------------------------------------------------------------
+; This approach to implementation requires the CPU to very quickly update
+; the read value for register 1 to indicate busy. Should probably dedicate a CPU to this.
+; TODO: We must start this program at the "wait 1 pin 10" line (one before the wrap target)
+;
+; 14 instructions
+;
+; Program should be started at wait_for_write_start.
+;-----------------------------------------------------------------------------------------
+.program write_control_regs
+write_value:
+    push block						; Send the last value read before ~IOW went high.
+
+wait_for_write_start:
+    wait 0 pin 10                   ; Wait for ~IOW low
+    mov osr, pins
+    out null, 12					; Skip data, data_dir, ~DACK, ~IOW and ~IOR
+    out y, 2						; ~CS and AEN to Y (want both 0)
+    jmp y-- wait_for_write_start
+    out y, 2						; Address to Y
+    jmp y-- wait_for_write_start	; Jump if address = 320
+    jmp y-- write_common			; Jump if address 322
+    jmp !y write_common             ; Jump if address 326. Not an actual register so
+                                    ; CPU will discard data.
+    irq nowait 1				    ; Write to 324 so send attention interrupt
+
+.wrap_target
+    mov osr, pins
+    jmp pin write_value				; Break if ~IOW has gone high.
+    mov isr, osr                    ; Update previous value
+.wrap
+
+;-----------------------------------------------------------------------------------------
+; Read both control registers in 1 program.
+;
+; Program should be started at wrap target.
+;
+; Note: We must constantly pull from the FIFO to keep the
+; register value up to date.
+;
+; 14 instructions. Up to 15 cycle delay (+ external delays) to set up read.
+; See top of file for a discussion on max delays. 
+;-----------------------------------------------------------------------------------------
+.program read_control_register
+.side_set 1 opt						; Side set maps to data_dir
+
+read_322:
+    int nowait 2                    ; Send interrupt so CPU can clear interrupt
+    out null, 8  side 1             ; Skip 324 register value. OK to signal pindir change earlier / a second time.
+read_324:
+do_read:
+    out pins, 8 side 1		        ; Set data. (also signals pindir change)
+                                    ; (Setting tranceiver direction will result in other program setting pindirs
+    wait 1 pin 9					; Wait for ~IOR high
+    irq nowait 3                    ; Signal to restore pindirs and tranceiver direction.
+
+.wrap_target:
+wait_for_read_start:
+    pull noblock					; Keep read values up to date. If FIFO is empty,
+    mov x, osr						; X is moved to OSR. So save read values in X.
+    ; For 1 cycle lower worst case latency we can do a "jmp pin wait_for_read_start" here on ~IOR.
+    mov osr, pins					; in pins are configured to start at ~IOR
+    out y, 3						; Shift ~IOR, ~CS, AEN into Y (want all 0)
+    jmp y-- wait_for_read_start
+    out y, 2                        ; Shift A0 into Y (want 1)
+    mov osr, x                      ; Load read data in case we need it
+    jmp y-- wait_for_read_start     ; Jump if A0A1 == 0x00
+    jmp y-- read_324                ; Jump if A0A1 == 0x01
+    jmp y-- read_322                 ; Jump if A0A1 == 0x10
+.wrap
+
+;-----------------------------------------------------------------------------------------
+; Attachment status register.
+;
+; Note: We must constantly pull from the FIFO to keep the
+; register value up to date.
+;
+; 11 instructions. Up to 11 cycle delay (+ external delays) to set up read.
+; See top of file for a discussion on max delays. 
+;-----------------------------------------------------------------------------------------
+.program read_register_322
+.side_set 1 opt						; Side set maps to data_dir
+
+wait_for_read_start:
+    pull noblock					; Keep read values up to date. If FIFO is empty,
+    mov x, osr						; X is moved to OSR. So save read values in X.
+    ; For 1 cycle lower worst case latency we can do a "jmp pin wait_for_read_start" here on ~IOR.
+    mov osr, pins					; in pins are configured to start at ~IOR
+    out y, 4						; Shift ~IOR, ~CS, AEN and A1 into Y (want all 0)
+    jmp y-- wait_for_read_start
+    out y, 1                        ; Shift A0 into Y (want 1)
+    jmp !y wait_for_read_start      ; Jump if A0 not 1
+    
+do_read:
+    int nowait 2 side 1             ; Send interrupt so CPU can clear interrupt. (also signals pindir change)
+                                    ; (Setting tranceiver direction will result in other program setting pindirs
+    mov pins, x						; Set data.
+    wait 1 pin 9					; Wait for ~IOR high
+    irq nowait 3                    ; Signal to restore pindirs and tranceiver direction.
+
+;-----------------------------------------------------------------------------------------
+; Interrupt status register.
+;
+; Note: We must constantly pull from the FIFO to keep the
+; register value up to date.
+;
+; 11 instructions. Up to 12 cycle delay (+ external delays) to set up read.
+; See top of file for a discussion on max delays. 
+;-----------------------------------------------------------------------------------------
+.program read_register_324
+.side_set 1 opt						; Side set maps to data_dir
+
+wait_for_read_start:
+    pull noblock					; Keep read values up to date. If FIFO is empty,
+    mov x, osr						; X is moved to OSR. So save read values in X.
+    ; For 1 cycle lower worst case latency we can do a "jmp pin wait_for_read_start" here on ~IOR.
+    mov osr, pins					; in pins are configured to start at ~IOR
+    out y, 3						; Shift ~IOR, ~CS, AEN into Y (want all 0)
+    jmp y-- wait_for_read_start
+    out y, 2                        ; Shift A0 into Y (want 1)
+    jmp y-- wait_for_read_start     ; Jump if A0A1 == 0x00
+    jmp !y wait_for_read_start      ; Jump if A0A1 != 0x01
+
+do_read:
+    mov pins, x	side 1              ; Set data. (also signals pindir change)
+                                    ; (Setting tranceiver direction will result in other program setting pindirs
+    wait 1 pin 9					; Wait for ~IOR high
+    irq nowait 3                    ; Signal to restore pindirs and tranceiver direction.
+
+;-----------------------------------------------------------------------------------------
+; Waits for data_dir to go high and then sets pindirs accordingly.
+; Waits for interrupt signal before restoring.
+;
+; in and out pin mappings should be 1 bit starting at data_dir
+; set pindir mapping should be 5 bits starting at D0
+; side set mapping should be 3 bits starting at D5
+;
+; 5 instructions
+;-----------------------------------------------------------------------------------------
+.program set_pindirs
+.side_set 3 opt pindirs				; The 3 bits are pindirs for D6-D8
+	wait 1 pin 0    				; Wait on data_dir to go high (pin 22)
+	set pindirs, 31 side 7			; Pindirs set to out for all 8 data bits. 74LVC245 transceiver should have reversed by now.
+	wait 1 irq 3					; Wait for signal to reverse pindirs / tranceiver direction
+	set pindirs, 0 side 0			; Restore all pindirs.
+	mov pins, null					; Restore data_dir (tranceiver direction). Must not be before pindirs.
+                                    ; Could be at same time however but would require using pindir / pull down to effect this.
+                                    ; An option if we end up being an instruction over budget

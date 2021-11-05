@@ -35,7 +35,7 @@
             gpio_set_function(pinIndex, GPIO_FUNC_SIO);
         }
     }
-    gpio_set_function()
+/*    gpio_set_function()
 
      GPIO_FUNC_XIP = 0,
     GPIO_FUNC_SPI = 1,
@@ -48,4 +48,5 @@
     GPIO_FUNC_GPCK = 8,
     GPIO_FUNC_USB = 9,
     GPIO_FUNC_NULL = 0x1f,   
+*/
 }

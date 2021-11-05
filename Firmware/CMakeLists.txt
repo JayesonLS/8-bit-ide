@@ -19,5 +19,6 @@ add_compile_options(-Wall
 # Include common library
 add_subdirectory(Common build)
 add_subdirectory(XtaFirmware)
+add_subdirectory(Dba8Firmware)
 add_subdirectory(LogicAnalyzer)
 
