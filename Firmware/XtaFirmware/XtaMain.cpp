@@ -19,9 +19,12 @@
 
 int main()
 {
+    // We run this as early as possible just in case some output is driving something
+    // in some way that it should not.  
+    IoConfig::PreInitialzieIo();
+
     stdio_init_all();
 
-    IoConfig::PreInitialzieIo();
 
     return 0;
 }

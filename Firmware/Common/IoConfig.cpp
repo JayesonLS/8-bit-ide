@@ -18,10 +18,34 @@
 
 /*static*/ void IoConfig::PreInitialzieIo()
 {
+    // The order here is chosen on purpose.
+    // First, disable any outputs that should not be inputs,
+    // then clear/set in/out values as needed, then enable
+    // outputs.
     sio_hw->gpio_oe_clr = INITIAL_INPUTS;
     sio_hw->gpio_clr = INITIAL_INPUTS | INITIAL_OUTPUTS_LOW;
     sio_hw->gpio_set = INITIAL_OUTPUTS_HIGH;
     sio_hw->gpio_oe_set = INITIAL_OUTPUTS;
 
-    // TODO: Do we need to set the IO functions here with gpio_set_function()?
+    // To start, configure any pins we are using as SIO's.
+    for (uint pinIndex = 0, mask = INITIAL_INPUTS_AND_OUTPUTS; pinIndex < 32; pinIndex++, mask >>= 1)
+    {
+        if (mask & 0x01)
+        {
+            gpio_set_function(pinIndex, GPIO_FUNC_SIO);
+        }
+    }
+    gpio_set_function()
+
+     GPIO_FUNC_XIP = 0,
+    GPIO_FUNC_SPI = 1,
+    GPIO_FUNC_UART = 2,
+    GPIO_FUNC_I2C = 3,
+    GPIO_FUNC_PWM = 4,
+    GPIO_FUNC_SIO = 5,
+    GPIO_FUNC_PIO0 = 6,
+    GPIO_FUNC_PIO1 = 7,
+    GPIO_FUNC_GPCK = 8,
+    GPIO_FUNC_USB = 9,
+    GPIO_FUNC_NULL = 0x1f,   
 }

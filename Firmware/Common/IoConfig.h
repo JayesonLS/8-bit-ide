@@ -64,9 +64,9 @@ public:
         (1 << D0) | (1 << D1) | (1 << D2) | (1 << D3) | (1 << D4) | (1 << D5) | (1 << D6) | (1 << D7) |
         (1 << INV_DACK) | (1 << INV_IOR) | (1 << INV_IOW) | (1 << INV_CS) | (1 << AEN) || (1 << A1) | (1 << A2); 
     static const uint INITIAL_OUTPUTS_LOW = (1 << DATA_DIR);
-    static const uint INITIAL_OUTPUTS_HIGH = (1 << INV_DRQ) | (1 << INV_IRQ);
+    static const uint INITIAL_OUTPUTS_HIGH = (1 << INV_DRQ) | (1 << INV_IRQ) | (1 << PICO_LED);
     static const uint INITIAL_OUTPUTS = INITIAL_OUTPUTS_LOW | INITIAL_OUTPUTS_HIGH;
-    static const uint ALL_USED_IO = INITIAL_INPUTS | INITIAL_OUTPUTS;
+    static const uint INITIAL_INPUTS_AND_OUTPUTS = INITIAL_INPUTS | INITIAL_OUTPUTS;
 
     // Method that should be called very early in startup process
     // to configure initial IO pin state. 
