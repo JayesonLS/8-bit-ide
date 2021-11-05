@@ -17,7 +17,7 @@
 #include <pico/stdlib.h>
 #include <hardware/pio.h>
 #include <DeviceId.h>
-#include "logic_analyzer.h"
+#include "LogicAnalyzer.h"
 
 static const LogicAnalyzer::CaptureType CAPTURE_TYPE = LogicAnalyzer::CaptureType::Sample;
 static const size_t CAPTURE_MAX_SAMPLES = 48 * 1024;

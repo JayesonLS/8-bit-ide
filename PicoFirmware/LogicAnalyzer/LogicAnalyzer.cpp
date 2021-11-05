@@ -17,8 +17,8 @@
 #include <hardware/vreg.h>
 #include <hardware/dma.h>
 #include <hardware/structs/bus_ctrl.h>
-#include "logic_analyzer.h"
-#include "logic_analyzer.pio.h"
+#include "LogicAnalyzer.h"
+#include "LogicAnalyzer.pio.h"
 
 LogicAnalyzer::LogicAnalyzer(PIO pio, CaptureType captureType, size_t maxSampleCount)
     : captureType(captureType)
