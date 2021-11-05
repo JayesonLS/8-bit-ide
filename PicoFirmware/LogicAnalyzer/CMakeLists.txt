@@ -10,6 +10,7 @@ set(CMAKE_CXX_STANDARD 17)
 # Initialize the SDK
 pico_sdk_init()
 
+# Include common library
 add_subdirectory(../Common build)
 
 add_compile_options(-Wall
@@ -27,7 +28,7 @@ if (TARGET tinyusb_device)
         pico_generate_pio_header(logic_analyzer ${CMAKE_CURRENT_LIST_DIR}/logic_analyzer.pio)
                 
         # Pull in needed libraries.
-        target_link_libraries(logic_analyzer pico_stdlib hardware_pio hardware_dma hardware_adc Common)
+        target_link_libraries(logic_analyzer common_lib pico_stdlib hardware_pio hardware_dma hardware_adc)
     
         # enable usb output, disable uart output
         pico_enable_stdio_usb(logic_analyzer 1)

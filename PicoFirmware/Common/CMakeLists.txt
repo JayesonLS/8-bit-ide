@@ -1,5 +1,5 @@
-add_library(Common INTERFACE)
-target_sources(Common INTERFACE
+add_library(common_lib INTERFACE)
+target_sources(common_lib INTERFACE
     ${CMAKE_CURRENT_LIST_DIR}/DeviceId.cpp
 	${CMAKE_CURRENT_LIST_DIR}/sha1/sha1.c
     ${CMAKE_CURRENT_LIST_DIR}/fatfs/source/ff.c
@@ -8,12 +8,12 @@ target_sources(Common INTERFACE
     ${CMAKE_CURRENT_LIST_DIR}/tf_card/tf_card.c
 )
 
-target_include_directories(Common INTERFACE
+target_include_directories(common_lib INTERFACE
     .
     fatfs/source
 )
 
-target_link_libraries(Common INTERFACE
+target_link_libraries(common_lib INTERFACE
     pico_stdlib
     hardware_adc
     hardware_clocks
