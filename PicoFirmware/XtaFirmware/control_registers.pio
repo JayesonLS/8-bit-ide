@@ -125,7 +125,7 @@ do_read:
     mov osr, isr					; (Setting tranceiver direction will result in other program setting pindirs)
     out pins, 8						; Set data.
     wait 1 pin 9					; Wait for ~IOR high
-    irq 3 nowait                    ; Signal to restore pindirs and tranceiver direction.
+    irq nowait 3                    ; Signal to restore pindirs and tranceiver direction.
 
 ;-----------------------------------------------------------------------------------------
 ; Register 2 is a configuration register. We don't need to constantly keep the FIFO empty.
@@ -143,9 +143,9 @@ wait_for_read_start:
     mov osr, pins					; in pins are configured to start at ~CS
     out y, 2						; ~CS, AEN to Y (want all 0)
     jmp y-- wait_for_read_start
-    out y, 0						; Reverse order A0 and A1 to Y (want 0b10 == addr 1)
-    jmp y-- wait_for_read_start
-    jmp !y wait_for_read_start
+    out y, 2						; Reverse order A0 and A1 to Y (want 0b10 == addr 1)
+    jmp y-- wait_for_read_start     ; Jump if A0A1 = 0b00 
+    jmp !y wait_for_read_start      ; Jump if A0A1 != 0b01. 0b01 == Address 0b10. 
 
 do_read:
     pull noblock side 1				; Get data and change tranceiver direction. We will use DMA/interrupt
@@ -153,7 +153,7 @@ do_read:
                                     ; set_pindirs will change pindirs for us when the tranceiver direction changes.
     out pins, 8						; Set data
     wait 1 pin 9					; Wait for ~IOR high
-    irq 3 nowait                    ; Signal to restore pindirs and tranceiver direction.
+    irq nowait 3                    ; Signal to restore pindirs and tranceiver direction.
 
 ;-----------------------------------------------------------------------------------------
 ; Waits for data_dir to go high and then sets pindirs accordingly.
