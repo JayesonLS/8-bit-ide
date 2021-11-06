@@ -15,23 +15,34 @@
 ; You should have received a copy of the GNU General Public License
 ; along with this program.If not, see < https://www.gnu.org/licenses/>.
 
-; Read setup times:
-; Source 1: PC104 timings document, gives some huge number.
-; Source 2: Tandy 1000SX setup time (8MHz bus), then subtract the 
-;           difference for 3 clock cycles for 10MHz vs  8MHz bus.
-;           Gives 192ns.
-; Source 3: tOE/tDOE from WD1002S-WX2 disk controller manual.
-;           Gives 175ns.
-;
-; At 125MHz, 8ns per instruction.
-; Using max read setup time is 175ns = 21.875 cycles. 
-; Subtract ~4 cycles for aliasing delay, two LVC propogation
-; delays, and possibly one Pico pad propogation delay.
-; Therefore max instructions to set up a read is ~18.
-;
-; For worst read setup latency below of 13 cycles, total delay
-; is ~136ns.
-
+; XTA Registers:
+; 320 Read: Read data from drive
+; 320 Write: Write data to drive
+; 321 Read: Status register
+;   Bit 7-6: Reserved
+;   Bit 5: IRQ asserted
+;   Bit 4: DRQ asserted
+;   Bit 3: Busy
+;   Bit 2: Control(0)/Data(1)
+;   Bit 1: Output(0)/Input(1)
+;   Bit 0: Request
+; 321 Write: Reset. Data ignored.
+; 322 Read: Configuration register
+;   Bit 7: Unused?
+;   Bit 6: WD jumper value? Check on drive.
+;   Bit 5: WD jumper value? Check on drive.
+;   Bit 4: WD jumper value? Check on drive.
+;   Bit 3-2: Drive 0 config
+;   Bit 1-0: Drive 1 config
+;       XTA only supports one drive. Real XTA drives seem 
+;       to report same value for both. 
+; 322 Write: Select register (tells drive to prepare for command).
+;       Data ignored.
+; 323 Write: DMA/IRQ enable.
+;   Bit 7-2: Reserved
+;   Bit 1: IRQ enable
+;   Bit 0: DMA enable
+;   
 ; Proposed pin ordering
 ;        uint data : num_data_bits;
 ;        uint inv_dack : 1;
@@ -57,6 +68,23 @@
 ;      = 23 instructions min, 9 spare
 ; Second option seems best, we have a lot of room for latency reduction. Can possibly even
 ; squeeze in the DMA code without having to swap programs on the fly.
+
+; Read setup times:
+; Source 1: PC104 timings document, gives some huge number.
+; Source 2: Tandy 1000SX setup time (8MHz bus), then subtract the 
+;           difference for 3 clock cycles for 10MHz vs  8MHz bus.
+;           Gives 192ns.
+; Source 3: tOE/tDOE from WD1002S-WX2 disk controller manual.
+;           Gives 175ns.
+;
+; At 125MHz, 8ns per instruction.
+; Using max read setup time is 175ns = 21.875 cycles. 
+; Subtract ~4 cycles for aliasing delay, two LVC propogation
+; delays, and possibly one Pico pad propogation delay.
+; Therefore max instructions to set up a read is ~18.
+;
+; For worst read setup latency below of 13 cycles, total delay
+; is ~136ns.
 
 ;-----------------------------------------------------------------------------------------
 ; Non-DMA writes to data register. Simply writes values to the FIFO which will be DMA'ed
