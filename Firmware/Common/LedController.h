@@ -18,16 +18,21 @@
 // Led controller with layered priorities.
 class LedController
 {
+public:
     enum class ErrorType
     {
-        None = -1,
-
+        None,
+        Invalid,
         NoPrimarySdCard,
         PrimarySdCommunicationError,
         PrimarySdTooSmall,
 
         Num
     };
+
+    static uint const ERROR_FLASH_ON_MS = 500;
+    static uint const ERROR_FLASH_OFF_MS = 500;
+    static uint const ERROR_FLASH_BETWEEN_MS = 2000;
 
     static LedController instance;
 
@@ -47,8 +52,27 @@ class LedController
     // Call this regularly from main loop (not from interrupt).
     void Update(); 
 
+#ifndef DISABLE_TESTS
+    static void RunLedDemo();
+#endif
+
 private:
-    bool driveActiveState = 0;
-    bool setState = 0;
+    enum class FlashState
+    {
+        NotFlashing,
+        FlashOn,
+        FlashOff,
+        DelayBetweenFlashes
+    };
+
+    bool driveActiveState = false;
+    bool setState = false;
     ErrorType errorType = ErrorType::None;
+
+    // For sequencing the flashes.
+    FlashState flashState = FlashState::NotFlashing;
+    size_t flashCount = 0;
+    uint32_t lastStartTime = 0;
+
+    bool lastLedState = false;
 };
