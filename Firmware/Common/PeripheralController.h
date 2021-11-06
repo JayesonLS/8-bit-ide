@@ -13,31 +13,30 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.If not, see < https://www.gnu.org/licenses/>.
 
-#include <stdio.h>
-#include <pico/stdlib.h>
-#include <IoConfig.h>
-#include <PeripheralController.h>
-#include <LedController.h>
+#pragma once
 
-
-static void Intialize()
+// Controller for external peripherals. Currently just controls LED and
+// button directly connected to GPIOs. However things are set up for 
+// attaching an i2c bus expander to those pins so we can have more things
+// attached. Stepper motor control for example.
+class PeripheralController
 {
-    // We run this as early as possible just in case some output is driving something
-    // in some way that it should not.  
-    IoConfig::PreInitialzieIo();
+public:
+    static PeripheralController instance;
 
-    stdio_init_all();
+    void Initialize();
+    bool IsIntialized() { return isInitialized; }
 
-    PeripheralController::instance.Initialize();
-    LedController::instance.Initialize();
-}
+    // Set the state of the attached LED. 
+    void SetLed(bool on);
 
-int main()
-{
-    Intialize();
+    // Returns true if the button is down.
+    bool GetBootOverrideButtonDown();
 
-    LedController::RunLedDemo();
+#ifndef DISABLE_TESTS
+    static void RunButtonDemo();
+#endif
 
-
-    return 0;
-}
+private:
+    bool isInitialized = false;
+};

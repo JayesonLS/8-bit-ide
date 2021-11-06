@@ -17,6 +17,7 @@
 #include <cstdlib>
 #include <IoConfig.h>
 #include "LedController.h"
+#include "PeripheralController.h"
 
 /*static*/ LedController LedController::instance;
 
@@ -26,7 +27,10 @@ void LedController::Initialize()
     gpio_init(IoConfig::PICO_LED);
     gpio_set_dir(IoConfig::PICO_LED, GPIO_OUT);
 
-    // TODO: Check that PerhipheralController has been intialized.
+    if (!PeripheralController::instance.IsIntialized())
+    {
+        panic("PeripheralController should be initialized first.");
+    }
 
     Update();
 }
@@ -113,14 +117,13 @@ void LedController::Update()
 
     if (nextLedState != lastLedState)
     {
+        // Update both the Pico built in LED and the one controlled by
+        // the PeripheralController/
         gpio_put(IoConfig::PICO_LED, nextLedState);
- 
-       // TODO: Update PerhipheralController LED.
- 
+        PeripheralController::instance.SetLed(nextLedState);
         lastLedState = nextLedState;
     }
 }
-
 
 #ifndef DISABLE_TESTS
 /*static*/ void LedController::RunLedDemo()

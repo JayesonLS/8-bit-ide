@@ -3,6 +3,7 @@ target_sources(CommonLib INTERFACE
     ${CMAKE_CURRENT_LIST_DIR}/DeviceId.cpp
     ${CMAKE_CURRENT_LIST_DIR}/IoConfig.cpp
     ${CMAKE_CURRENT_LIST_DIR}/LedController.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/PeripheralController.cpp
 	${CMAKE_CURRENT_LIST_DIR}/sha1/sha1.c
     ${CMAKE_CURRENT_LIST_DIR}/fatfs/source/ff.c
     ${CMAKE_CURRENT_LIST_DIR}/fatfs/source/ffsystem.c
