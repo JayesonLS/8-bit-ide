@@ -36,8 +36,8 @@ int main()
 {
     Intialize();
 
-    LedController::RunLedDemo();
-
+    PeripheralController::RunButtonDemo();
+    //LedController::RunLedDemo();
 
     return 0;
 }

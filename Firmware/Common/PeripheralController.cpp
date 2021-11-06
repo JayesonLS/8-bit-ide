@@ -18,6 +18,11 @@
 #include <IoConfig.h>
 #include "PeripheralController.h"
 
+#ifndef DISABLE_TESTS
+#include <stdio.h>
+#include "LedController.h"
+#endif
+
 /*static*/ PeripheralController PeripheralController::instance;
 
 void PeripheralController::Initialize()
@@ -30,6 +35,7 @@ void PeripheralController::Initialize()
     // ~BOOT_OVERRIDE
     gpio_init(IoConfig::INV_BOOT_OVERRIDE);
     gpio_set_dir(IoConfig::INV_BOOT_OVERRIDE, GPIO_IN);
+    gpio_pull_up(IoConfig::INV_BOOT_OVERRIDE);
 
     isInitialized = true;
 }
@@ -43,12 +49,26 @@ void PeripheralController::SetLed(bool on)
 // Returns true if the button is down.
 bool PeripheralController::GetBootOverrideButtonDown()
 {
-    return gpio_get(IoConfig::INV_BOOT_OVERRIDE);
+    return gpio_get(IoConfig::INV_BOOT_OVERRIDE) == false; // Button is pressed when when input pulled low. 
 }
 
 #ifndef DISABLE_TESTS
 /*static*/ void PeripheralController::RunButtonDemo()
 {
-    // TODO:
+    bool lastButtonDown = false;
+
+    while (true)
+    {
+        bool buttonDown = PeripheralController::instance.GetBootOverrideButtonDown();
+        if (buttonDown != lastButtonDown)
+        {
+            printf("Button is %s\n", buttonDown ? "down" : "up");
+            lastButtonDown = buttonDown;
+
+            LedController::instance.SetLed(buttonDown);
+        }
+
+        sleep_ms(20);
+    }
 }
 #endif
