@@ -47,21 +47,19 @@ write_value:
     push block      ; Send the last value read before ~IOW went high.
 
 
-; 12 instructions.
+; TODO: should probably enable pullups on data lines in case there is 
+; some way the tranceiver reverses without pindirs being set.
+; TODO: Should init x to FF as this will be the default value if the fifo
+; is read while not empty.
+; 6 instructions. 7 cycles of latency.
 .program data_read
 .side_set 1 opt
 wait_for_read_start:
-    jmp pin wait_for_read_start    ; Spin until ~IOR is low
-    mov osr, pins   ; Get current pin state
-    out null, 10     ; Skip data, ~DACK, ~IOR and ~IOW
-    out x, 4        ; ~CS, AEN, A0, A1, to X (want all 0)
-    jmp x--, wait_for_read_start
+    mov osr, pins                   ; in pins are configured to start at Address lines
+    out y, 5                        ; Shift A1, A0, ~IOR, ~CS, AEN into Y (want all 0)
+    jmp y--, wait_for_read_start
 
     ; Place data on the bus.
-    pull noblock side 1 ; Get data, change tranceiver direction
-    out pins, 8         ; Set data
-    mov osr, ~null
-    out pindirs, 8      ; Set pindirs
-    mov osr, null
-    wait 1 pin 9        ; Wait for ~IOR high
-    out pindirs, 8 side 0 ; Disable outputs and restore tranceiver direction.
+    pull noblock side 1             ; Get data, change tranceiver direction. set_pindirs program will set pin directions.
+    out pins, 8                     ; Set data
+    wait 1 pin 2					; Wait for ~IOR high. set_pindirs will take care of restoring pindirs and tranceiver dir.
