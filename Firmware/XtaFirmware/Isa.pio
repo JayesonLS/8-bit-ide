@@ -25,48 +25,53 @@
 ;        uint data : num_data_bits;
 ;        uint inv_dack : 1;
 ;        uint inv_iow : 1;
-;		 uint a0 : 1; 
+;        uint a0 : 1; 
 ;        uint a1 : 1;
 ;        uint inv_cs : 1;
 ;        uint aen : 1;
 ;        uint inv_ior : 1;
 ;        uint drq : 1;
 ;        uint irq : 1;
-;		 uint data_dir : 1; data_dir here in case we want to side-set it with drq and/or irq.
+;        uint data_dir : 1; data_dir here in case we want to side-set it with drq and/or irq.
 ;
 ;        uint inv_reset : 1;
 
 ; Proposed allocations:
-; PIO0 = write_control_regs (17) + read_register_1 (13) = 30 instructions
-; Can afford to add optional instruction to read_register_1 to save a cycle of latency.
-; PIO1 = read_register_2 (11) + set_pindirs (5) = 16 instructions, 
-; Leaves 16 for data register program in PIO1.
-;
-; If we need more for data register program, should remove set_pindirs which will
-; add 1 instruction/cycle of latency to each of the read_registers. This will give the
-; following sizes:
-; PIO0 = write_control_regs (17) + read_register_1 (14) = 31 instructions
-; Can afford to add optional instruction to read_register_1 to save a cycle of latency.
-; PIO1 = read_register_2 (12) = 12 instructions, 
-; Leaves 20 for data register program in PIO1.
+; PIO0 = data_write[_dma] (9 min) + write_control_regs (15) 
+;      = 24 instructions min, 8 spare
+; PIO1 = data_read[_dma] (6 min) + read_register_1 (10) + read_register_2 (8) + set_pindirs (5)
+;      = 29 instructions min, 3 spare
+; OR
+; PIO1 = data_read[_dma] (6 min) + read_control_register (13) +  set_pindirs (5)
+;      = 23 instructions min, 9 spare
+; Second option seems best, we have a lot of room for latency reduction. Can possibly even
+; squeeze in the DMA code without having to swap programs on the fly.
 
-; 10 instructions
+;-----------------------------------------------------------------------------------------
+; Non-DMA writes to data register. Simply writes values to the FIFO which will be DMA'ed
+; into a memory buffer. The DMA controller will handle the interrupt when the transfer
+; has completed.
+;
+; Program must be started at wait_for_write_start.
+; 
+; 9 instructions
+;-----------------------------------------------------------------------------------------
 .program data_write
+write_value:
+    push block                      ; Send the last value read before ~IOW went high.
+
 wait_for_write_start:
-    mov osr, pins   ; Get current pin state
-    mov isr, osr    ; Save to previous value
-    out null, 10     ; Skip data, ~DACK and ~IOR
-    out x, 5        ; ~IOW, ~CS, AEN, A0, A1, to X (want all 0)
+    mov osr, pins                   ; Get current pin state
+    mov isr, osr                    ; Save to previous value
+    out null, 9                     ; Skip data and ~DACK
+    out x, 5                        ; ~IOW, A0, A1, ~CS, AEN, to X (want all 0)
     jmp x--, wait_for_write_start
     
-wait_for_write_end:
+.wrap_target
     mov osr, pins
-    jmp pin write_value    ; Break if ~IOW has gone high.
-    mov isr, osr    ; Update previous value
-    jmp wait_for_write_end
-
-write_value:
-    push block      ; Send the last value read before ~IOW went high.
+    jmp pin write_value             ; Break if ~IOW has gone high.
+    mov isr, osr                    ; Update previous value
+.wrap
 
 ;-----------------------------------------------------------------------------------------
 ; This approach to implementation requires the CPU to very quickly update
@@ -86,7 +91,7 @@ write_address_2:
 wait_for_write_start:
     wait 0 pin 10                   ; Wait for ~IOW low
     mov osr, pins
-    out null, 12					; Skip data, data_dir, ~DACK, ~IOW
+    out null, 10					; Skip data, ~DACK, ~IOW
     out y, 4						; A0, A1, ~CS and AEN to Y (want 0b0001, 0b0010 or 0b0011)
     jmp y-- wait_for_write_start    ; Jump if 0b00000
     jmp y-- not_address_1			; Jump if address 2 or 3
@@ -113,12 +118,18 @@ write_value:
     ; (Save 2 instructions) 
     push block						; Send the last value read before ~IOW went high.
 
-
-; TODO: should probably enable pullups on data lines in case there is 
+;-----------------------------------------------------------------------------------------
+; Non-DMA reads from data register. Simply pulls a value and returns it on every read.
+; The FIFO will be DMA fed and the DMA controller will handle the interrupt when the transfer
+; has completed.
+;
+; Setup code should enable pullups on data lines in case there is 
 ; some way the tranceiver reverses without pindirs being set.
-; TODO: Should init x to FF as this will be the default value if the FIFO
+; Init X to FF as this will be the default value if the FIFO
 ; is read when empty
+;
 ; 6 instructions. 7 cycles of latency.
+;-----------------------------------------------------------------------------------------
 .program data_read
 .side_set 1 opt
 wait_for_read_start:
@@ -173,8 +184,8 @@ do_read:
 .side_set 1 opt
 wait_for_read_start:
     ; For 4 cycle lower worst case latency we can do a "wait 0 pin 2" here on ~IOR.
-    mov osr, pins					; in pins are configured to start at address lines
-    out y, 5						; A0, A1, ~IOR, ~CS, AEN to Y (want 0b00010)
+    mov osr, pins                   ; in pins are configured to start at address lines
+    out y, 5                        ; A0, A1, ~IOR, ~CS, AEN to Y (want 0b00010)
     jmp y-- wait_for_read_start     ; Jump if  0b00000
     jmp y-- wait_for_read_start     ; Jump if  0b00001
     jmp !y wait_for_read_start      ; Jump if !0b00010
@@ -232,10 +243,10 @@ read_322:
 ;
 ; 5 instructions
 ;-----------------------------------------------------------------------------------------
-.program set_pindirs_alt
+.program set_pindirs
 .side_set 1 opt				        ; The 3 bits are pindirs for D6-D8
     mov osr, x side 0               ; Get 0x00FF from X and restore data_dir to low 
-	wait 1 pin 0    				; Wait on data_dir to go high
+    wait 1 pin 0    				; Wait on data_dir to go high
     out pindirs, 8                  ; Pindirs set to out for all 8 data bits. 74LVC245 transceiver should have reversed by now.
     wait 1 pin 3                    ; Wait for ~IOR high
-	out pindirs, 8      			; Restore all pindirs to inputs 
+    out pindirs, 8      			; Restore all pindirs to inputs 
