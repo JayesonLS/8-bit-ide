@@ -15,11 +15,22 @@
 ; You should have received a copy of the GNU General Public License
 ; along with this program.If not, see < https://www.gnu.org/licenses/>.
 
+; Read setup times:
+; Source 1: PC104 timings document, gives some huge number.
+; Source 2: Tandy 1000SX setup time (8MHz bus), then subtract the 
+;           difference for 3 clock cycles for 10MHz vs  8MHz bus.
+;           Gives 192ns.
+; Source 3: tOE/tDOE from WD1002S-WX2 disk controller manual.
+;           Gives 175ns.
+;
 ; At 125MHz, 8ns per instruction.
-; Max read setup time is 192ns = 24 cycles. Subtract 4 cycles for
-; aliasing delay, two LVC propogation delays, and possibly one Pico
-; propogation delay (4 cycles)
-; Therefore max instructions to set up a read is 20.
+; Using max read setup time is 175ns = 21.875 cycles. 
+; Subtract ~4 cycles for aliasing delay, two LVC propogation
+; delays, and possibly one Pico pad propogation delay.
+; Therefore max instructions to set up a read is ~18.
+;
+; For worst read setup latency below of 13 cycles, total delay
+; is ~136ns.
 
 ; Proposed pin ordering
 ;        uint data : num_data_bits;
