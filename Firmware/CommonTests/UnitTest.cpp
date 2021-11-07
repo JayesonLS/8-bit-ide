@@ -30,6 +30,8 @@
 {
     if (!condition)
     {
+        printf("Failed: ");
+
         va_list args;
         va_start(args, string);
         vprintf(string, args);
@@ -54,8 +56,14 @@ static void RunTestWithPrint(const char *name, void (*testMethod)())
         sleep_ms(500);
     }
 
-    printf("Starting Unit Tests\n");
+    printf("--------------------------------------------------------\n"
+           "Starting Unit Tests\n"
+           "\n");
 
     RunTestWithPrint("DeviceId", TestDeviceId);
+
+    printf("\n"
+           "Unit tests completed successfully.\n"
+           "--------------------------------------------------------\n");
 }
 

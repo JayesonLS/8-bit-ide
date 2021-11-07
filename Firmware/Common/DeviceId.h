@@ -20,9 +20,17 @@
 
 class DeviceId
 {
+public:
     static const size_t NUM_SERIAL_ID_WORDS = 4;
-    static const size_t NUM_GUID_BYTES = 20;
-    
+    static const size_t NUM_GUID_BYTES = 20;    
+
+    bool IsValid() const; // Generates a hash, takes around 50us.
+    bool IsUnique() const;
+
+    const uint16_t *GetSerialId() const { return serialId; }
+
+    static DeviceId GenerateNewUnique();
+
 private:
     static const size_t GENERATE_REPEAT_COUNT = 2;
     static const size_t GENERATE_ADC_SAMPLE_COUNT = 4096;
@@ -33,11 +41,5 @@ private:
 
     uint32_t CalulateCheckHash() const;
 
-public:
-    bool IsValid() const;  
-    bool IsUnique() const;
-
-    const uint16_t *GetSerialId() const { return serialId; }
-
-    static DeviceId GenerateNewUnique();
+    friend class UnitTest;
 };

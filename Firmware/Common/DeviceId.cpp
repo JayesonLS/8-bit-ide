@@ -17,7 +17,7 @@
 #include <hardware/adc.h>
 #include "DeviceId.h"
 
-static const int HASH_BYTES = 20;
+static const int SHA1_HASH_BYTES = 20;
 
 static_assert(sizeof(DeviceId) == 32);
 
@@ -26,20 +26,18 @@ static_assert(sizeof(DeviceId) == 32);
 // already have the code though.
 static uint32_t HashBytes32(const void *data, size_t size)
 {
-    static const int HASH_BYTES = 20;
-
     SHA1_CTX context;
-    uint8_t results[HASH_BYTES];
+    uint8_t sha1Results[SHA1_HASH_BYTES];
 
     SHA1Init(&context);
     SHA1Update(&context, (uint8_t *)data, size);
-    SHA1Final(results, &context);
+    SHA1Final(sha1Results, &context);
 
     uint32_t result = 0;
 
-    for (size_t i = 0; i < HASH_BYTES / sizeof(uint32_t); i++)
+    for (size_t i = 0; i < SHA1_HASH_BYTES / sizeof(uint32_t); i++)
     {
-        result ^= ((uint32_t *)results)[i];
+        result ^= ((uint32_t *)sha1Results)[i];
     }
 
     return result;
@@ -92,12 +90,12 @@ bool DeviceId::IsUnique() const
     // present AND somehow it booted from a controller at a later address. With all known
     // BIOSes this should not be possible.
     static_assert(GENERATE_REPEAT_COUNT > 0 && GENERATE_REPEAT_COUNT % 2 == 0);
-    static_assert(NUM_GUID_BYTES == HASH_BYTES); // Make sure same as SHA-1 hash length.
+    static_assert(NUM_GUID_BYTES == SHA1_HASH_BYTES); // Make sure same as SHA-1 hash length.
 
     // Generate the GUID.
     {
         SHA1_CTX context;
-        uint8_t results[HASH_BYTES];
+        uint8_t sha1Results[SHA1_HASH_BYTES];
 
         for (size_t repeatCount = GENERATE_REPEAT_COUNT; repeatCount; repeatCount--)
         {
@@ -109,11 +107,11 @@ bool DeviceId::IsUnique() const
                 SHA1Update(&context, (uint8_t *)&val, sizeof(uint16_t));
             }
 
-            SHA1Final(results, &context);
+            SHA1Final(sha1Results, &context);
 
             for (size_t mergeIndex = 0; mergeIndex < NUM_GUID_BYTES; mergeIndex++)
             {
-                result.guid[mergeIndex] ^= results[mergeIndex];
+                result.guid[mergeIndex] ^= sha1Results[mergeIndex];
             }
         }
     }
@@ -123,25 +121,25 @@ bool DeviceId::IsUnique() const
     // drive detect code will pull bits continuously, looking for the first 16 bits.  
     {
         SHA1_CTX context;
-        uint8_t results[HASH_BYTES];
+        uint8_t sha1Results[SHA1_HASH_BYTES];
 
         // Start with the current hash bytes. We will keep hashing these numbers until
         // we generate a valid serialId.
-        memcpy(results, result.guid, HASH_BYTES);
+        memcpy(sha1Results, result.guid, SHA1_HASH_BYTES);
 
         for (;;)
         {
             // Rehash the GUID.
             SHA1Init(&context);
-            SHA1Update(&context, results, HASH_BYTES);
-            SHA1Final(results, &context);
+            SHA1Update(&context, sha1Results, SHA1_HASH_BYTES);
+            SHA1Final(sha1Results, &context);
 
             // Combine into serialId.
-            static_assert(HASH_BYTES % sizeof(uint16_t) == 0);
+            static_assert(SHA1_HASH_BYTES % sizeof(uint16_t) == 0);
             memset(result.serialId, 0, sizeof(serialId));
-            for (size_t i = 0; i < HASH_BYTES / sizeof(uint16_t); i++)
+            for (size_t i = 0; i < SHA1_HASH_BYTES / sizeof(uint16_t); i++)
             {
-                result.serialId[i % NUM_SERIAL_ID_WORDS] ^= ((uint16_t *)results)[i];
+                result.serialId[i % NUM_SERIAL_ID_WORDS] ^= ((uint16_t *)sha1Results)[i];
             }
 
             // Check to see if the first 16 bits are repeated.
