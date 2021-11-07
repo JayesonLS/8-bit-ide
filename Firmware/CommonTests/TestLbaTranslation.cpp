@@ -106,7 +106,7 @@ static void TestAccessWithinDriveSize(const LbaTranslation& translation)
         UnitTest::Assert(accessFlags.at(i) == true, "Sector should be accessed.");
     }
 
-    // All of the later sectors should not have been access.
+    // All of the later sectors should not have been accessed.
     for (uint32_t i = numAccessedLbaSectors; i < LbaTranslation::MAX_LBA_SECTORS; i++)
     {
         UnitTest::Assert(accessFlags.at(i) == false, "Sector should not be accessed.");
