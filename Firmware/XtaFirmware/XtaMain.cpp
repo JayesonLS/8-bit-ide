@@ -18,8 +18,8 @@
 #include <IoConfig.h>
 #include <PeripheralController.h>
 #include <LedController.h>
-#include <Tests/UnitTest.h>
-#include <Tests/UnitDemo.h>
+#include <UnitTest.h>
+#include <UnitDemo.h>
 
 static void Intialize()
 {

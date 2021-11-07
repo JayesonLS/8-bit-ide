@@ -5,11 +5,6 @@ target_sources(CommonLib INTERFACE
     ${CMAKE_CURRENT_LIST_DIR}/LedController.cpp
     ${CMAKE_CURRENT_LIST_DIR}/PeripheralController.cpp
 
-    ${CMAKE_CURRENT_LIST_DIR}/Tests/UnitTest.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/Tests/TestDeviceId.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/Tests/DemoPeripheralController.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/Tests/DemoLedController.cpp
-
     ${CMAKE_CURRENT_LIST_DIR}/sha1/sha1.c
     ${CMAKE_CURRENT_LIST_DIR}/fatfs/source/ff.c
     ${CMAKE_CURRENT_LIST_DIR}/fatfs/source/ffsystem.c
