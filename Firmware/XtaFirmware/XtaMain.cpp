@@ -35,10 +35,13 @@ static void Intialize()
 
 static void RunTests()
 {
-    UnitTest::RunAllTests();
+    //while (true)
+    {
+        UnitTest::RunAllTests();
+    }
 
-    //UnitDemo::RunLedControllerLedDemo();
-    UnitDemo::RunPerphieralControllerButtonDemo();
+    UnitDemo::RunLedControllerLedDemo();
+    //UnitDemo::RunPerphieralControllerButtonDemo();
 }
 
 int main()

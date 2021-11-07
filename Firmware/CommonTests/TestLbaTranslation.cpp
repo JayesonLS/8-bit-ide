@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <vector>
+#include <cstdlib>
 #include <LbaTranslation.h>
 #include "UnitTest.h"
 
@@ -71,13 +72,76 @@ static KnownChs knownChss[] =
     {LbaTranslation::MAX_CYLINDERS, LbaTranslation::MAX_HEADS, LbaTranslation::MAX_SECTORS_PER_TRACK}
 };
 
+// We should only be accessing each sector once, so if the accessed flag is already
+// set, something has gone wrong.
+static void AccessSectors(const LbaTranslation& translation, uint32_t numCylinders, uint32_t numHeads, uint32_t numSectorsPerTrack, std::vector<bool> &accessFlagsOut)
+{
+    for (uint32_t cylinder = 0; cylinder < numCylinders; cylinder++)
+    {
+        for (uint32_t head = 0; head < numHeads; head++)
+        {
+            for (uint32_t sector = 0; sector < numSectorsPerTrack; sector++)
+            {
+                uint32_t lba = translation.LbaFromChsZeroBased(cylinder, head, sector);
+
+                UnitTest::Assert(lba != LbaTranslation::INVALID_LBA_SECTOR && lba < LbaTranslation::MAX_LBA_SECTORS, "LBA address valid");
+                UnitTest::Assert(accessFlagsOut.at(lba) == false, "Sector not previously accessed.");
+
+                accessFlagsOut.at(lba) = true;
+            }
+        }
+    }
+}
+
+static void TestAccessWithinDriveSize(const LbaTranslation& translation)
+{
+    std::vector<bool> accessFlags(LbaTranslation::MAX_LBA_SECTORS, false);
+    AccessSectors(translation, LbaTranslation::MAX_CYLINDERS, translation.GetNumHeads(), translation.GetNumSectorsPerTrack(), accessFlags);
+
+    uint32_t numAccessedLbaSectors = LbaTranslation::MAX_CYLINDERS * translation.GetNumHeads() * translation.GetNumSectorsPerTrack();
+
+    // All the early sectors should have been accessed.
+    for (uint32_t i = 0; i < numAccessedLbaSectors; i++)
+    {
+        UnitTest::Assert(accessFlags.at(i) == true, "Sector should be accessed.");
+    }
+
+    // All of the later sectors should not have been access.
+    for (uint32_t i = numAccessedLbaSectors; i < LbaTranslation::MAX_LBA_SECTORS; i++)
+    {
+        UnitTest::Assert(accessFlags.at(i) == false, "Sector should not be accessed.");
+    }
+}
+
+static void TestAccessAcrossMaxChs(const LbaTranslation& translation)
+{
+    std::vector<bool> accessFlags(LbaTranslation::MAX_LBA_SECTORS, false);
+    AccessSectors(translation, LbaTranslation::MAX_CYLINDERS, LbaTranslation::MAX_HEADS, LbaTranslation::MAX_SECTORS_PER_TRACK, accessFlags);
+
+    // Every sector should have been accessed.
+    for (uint32_t i = 0; i < LbaTranslation::MAX_LBA_SECTORS; i++)
+    {
+        UnitTest::Assert(accessFlags.at(i) == true, "Sector should be accessed.");
+    }
+}
+
+static void TestAccessWithMixedChs(const KnownChs &biosChs, const KnownChs &driveChs)
+{
+    LbaTranslation translation(driveChs.numHeads, driveChs.numSectorsPerTrack);
+    std::vector<bool> accessFlags(LbaTranslation::MAX_LBA_SECTORS, false);
+
+    AccessSectors(translation, biosChs.numCyliders, biosChs.numHeads, biosChs.numSectorsPerTrack, accessFlags);
+
+    // So long as we didn't hit a duplicate sector or go outside of the sector range, no further testing required.
+}
+
 /*static*/ void UnitTest::TestLbaTranslation()
 {
-    for (KnownChs &chs : knownChss)
+    for (const KnownChs &chs : knownChss)
     {
         // See if we have already done this heads and sector combination.
         bool skip = false;
-        for (KnownChs &previousChs : knownChss)
+        for (const KnownChs &previousChs : knownChss)
         {
             if (&previousChs == &chs)
             {
@@ -94,6 +158,40 @@ static KnownChs knownChss[] =
         if (!skip)
         {
             printf("    Testing %d heads, %d sectors per track.\n", chs.numHeads, chs.numSectorsPerTrack);
+
+            LbaTranslation translation(chs.numHeads, chs.numSectorsPerTrack);
+            TestAccessWithinDriveSize(translation);
+            TestAccessAcrossMaxChs(translation);
         }
+    }
+
+    // Do a few random rounds simulating where the BIOS CHS does not match the drive CHS.
+    const int NUM_TRIALS = 32;
+    size_t numKnownChs = std::extent<decltype(knownChss)>::value;
+
+    for (size_t trial = 0; trial < NUM_TRIALS; trial++)
+    {
+        const KnownChs &biosChs = knownChss[std::rand() % numKnownChs];
+
+        do
+        {
+            const KnownChs &driveChs = knownChss[std::rand() % numKnownChs];
+            if (driveChs.numHeads == biosChs.numHeads && 
+                driveChs.numSectorsPerTrack == biosChs.numSectorsPerTrack)
+            {
+                continue;
+            }
+
+            printf("    Testing BIOS with CHS %d, %d, %d accessing drive with CHS %d, %d, %d.\n", 
+                biosChs.numCyliders,
+                biosChs.numHeads,
+                biosChs.numSectorsPerTrack,
+                driveChs.numCyliders,
+                driveChs.numHeads,
+                driveChs.numSectorsPerTrack);
+
+            TestAccessWithMixedChs(biosChs, driveChs);
+
+        } while(false);
     }
 }

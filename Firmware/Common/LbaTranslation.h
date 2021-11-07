@@ -26,7 +26,7 @@ public:
 
     LbaTranslation(uint32_t numHeads, uint32_t numSectorsPerTrack);
 
-    uint32_t LbaFromChsZeroBased(uint32_t cylinder, uint32_t head, uint32_t sector)
+    uint32_t LbaFromChsZeroBased(uint32_t cylinder, uint32_t head, uint32_t sector) const
     {
         if (sector >= MAX_SECTORS_PER_TRACK || head >= MAX_HEADS || cylinder >= MAX_CYLINDERS)
         {
@@ -60,6 +60,9 @@ public:
             return cylinder * numHeads * numSectorsPerTrack + head * numSectorsPerTrack + sector;
         }
     }
+
+    uint32_t GetNumHeads() const { return numHeads; }
+    uint32_t GetNumSectorsPerTrack() const { return numSectorsPerTrack; }
 
 private:
     uint32_t numHeads;
