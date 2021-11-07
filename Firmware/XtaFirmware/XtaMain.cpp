@@ -18,7 +18,8 @@
 #include <IoConfig.h>
 #include <PeripheralController.h>
 #include <LedController.h>
-
+#include <Tests/UnitTest.h>
+#include <Tests/UnitDemo.h>
 
 static void Intialize()
 {
@@ -32,12 +33,20 @@ static void Intialize()
     LedController::instance.Initialize();
 }
 
+static void RunTests()
+{
+    UnitTest::RunAllTests();
+
+    //UnitDemo::RunLedControllerLedDemo();
+    UnitDemo::RunPerphieralControllerButtonDemo();
+}
+
 int main()
 {
     Intialize();
 
-    PeripheralController::RunButtonDemo();
-    //LedController::RunLedDemo();
+    RunTests();
+
 
     return 0;
 }

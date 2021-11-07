@@ -13,26 +13,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.If not, see < https://www.gnu.org/licenses/>.
 
-#pragma once
+#include <pico/stdlib.h>
+#include <DeviceId.h>
+#include "UnitTest.h"
 
-// Controller for external peripherals. Currently just controls LED and
-// button directly connected to GPIOs. However things are set up for 
-// attaching an i2c bus expander to those pins so we can have more things
-// attached. Stepper motor control for example.
-class PeripheralController
+/*static*/ void UnitTest::TestDeviceId()
 {
-public:
-    static PeripheralController instance;
-
-    void Initialize();
-    bool IsIntialized() { return isInitialized; }
-
-    // Set the state of the attached LED. 
-    void SetLed(bool on);
-
-    // Returns true if the button is down.
-    bool GetBootOverrideButtonDown();
-
-private:
-    bool isInitialized = false;
-};
+    // TODO:
+}

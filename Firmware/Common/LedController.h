@@ -52,10 +52,6 @@ public:
     // Call this regularly from main loop (not from interrupt).
     void Update(); 
 
-#ifndef DISABLE_TESTS
-    static void RunLedDemo();
-#endif
-
 private:
     enum class FlashState
     {

@@ -13,26 +13,23 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.If not, see < https://www.gnu.org/licenses/>.
 
-#pragma once
+#include <pico/stdlib.h>
+#include <cstdlib>
+#include <LedController.h>
+#include "UnitDemo.h"
 
-// Controller for external peripherals. Currently just controls LED and
-// button directly connected to GPIOs. However things are set up for 
-// attaching an i2c bus expander to those pins so we can have more things
-// attached. Stepper motor control for example.
-class PeripheralController
+/*static*/ void UnitDemo::RunLedControllerLedDemo()
 {
-public:
-    static PeripheralController instance;
+    for (int i = 0; ; i++)
+    {
+        LedController::instance.SetDriveActivity(i % 2 == 0);
+        LedController::instance.SetLed(i % 50 < 20);
 
-    void Initialize();
-    bool IsIntialized() { return isInitialized; }
+        if (i == 200)
+        {
+            LedController::instance.FlashErrorSequence(LedController::ErrorType::PrimarySdTooSmall);
+        }
 
-    // Set the state of the attached LED. 
-    void SetLed(bool on);
-
-    // Returns true if the button is down.
-    bool GetBootOverrideButtonDown();
-
-private:
-    bool isInitialized = false;
-};
+        sleep_ms(std::rand()% 100);
+    }
+}

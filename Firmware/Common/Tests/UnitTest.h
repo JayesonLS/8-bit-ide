@@ -15,24 +15,17 @@
 
 #pragma once
 
-// Controller for external peripherals. Currently just controls LED and
-// button directly connected to GPIOs. However things are set up for 
-// attaching an i2c bus expander to those pins so we can have more things
-// attached. Stepper motor control for example.
-class PeripheralController
+// This framework could be much better. Just something quick so we can
+// write some tests now and worry about framework later.
+class UnitTest
 {
 public:
-    static PeripheralController instance;
+    static void Assert(bool condition); 
+    static void Assert(bool condition, const char *string, ...);
 
-    void Initialize();
-    bool IsIntialized() { return isInitialized; }
+    static void TestDeviceId();
 
-    // Set the state of the attached LED. 
-    void SetLed(bool on);
-
-    // Returns true if the button is down.
-    bool GetBootOverrideButtonDown();
-
-private:
-    bool isInitialized = false;
+    // Modules should be initalized before running these tests.
+    // Some tests will access hardware resources.
+    static void RunAllTests();
 };

@@ -14,7 +14,6 @@
 // along with this program.If not, see < https://www.gnu.org/licenses/>.
 
 #include <pico/stdlib.h>
-#include <cstdlib>
 #include <IoConfig.h>
 #include "LedController.h"
 #include "PeripheralController.h"
@@ -124,22 +123,3 @@ void LedController::Update()
         lastLedState = nextLedState;
     }
 }
-
-#ifndef DISABLE_TESTS
-/*static*/ void LedController::RunLedDemo()
-{
-    for (int i = 0; ; i++)
-    {
-        LedController::instance.SetDriveActivity(i % 2 == 0);
-        LedController::instance.SetLed(i % 50 < 20);
-
-        if (i == 200)
-        {
-            LedController::instance.FlashErrorSequence(LedController::ErrorType::PrimarySdTooSmall);
-        }
-
-        sleep_ms(std::rand()% 100);
-
-    }
-}
-#endif
