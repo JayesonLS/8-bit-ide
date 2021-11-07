@@ -20,8 +20,6 @@
 #include <DeviceId.h>
 #include "UnitTest.h"
 
-volatile bool temp2 = false;
-
 /*static*/ void UnitTest::TestDeviceId()
 {
     static const size_t GENERATE_COUNT = 128;
@@ -48,5 +46,4 @@ volatile bool temp2 = false;
 
         previousIds.push_back(id);
     }
-
 }
