@@ -24,6 +24,7 @@ public:
     static void Assert(bool condition, const char *string, ...);
 
     static void TestDeviceId();
+    static void TestLbaTranslation();
 
     // Modules should be initalized before running these tests.
     // Some tests will access hardware resources.

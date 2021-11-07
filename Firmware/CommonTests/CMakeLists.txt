@@ -2,6 +2,7 @@ add_library(CommonTestsLib INTERFACE)
 target_sources(CommonTestsLib INTERFACE
     ${CMAKE_CURRENT_LIST_DIR}/UnitTest.cpp
     ${CMAKE_CURRENT_LIST_DIR}/TestDeviceId.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/TestLbaTranslation.cpp
     ${CMAKE_CURRENT_LIST_DIR}/DemoPeripheralController.cpp
     ${CMAKE_CURRENT_LIST_DIR}/DemoLedController.cpp
 )

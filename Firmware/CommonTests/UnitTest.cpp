@@ -61,6 +61,7 @@ static void RunTestWithPrint(const char *name, void (*testMethod)())
            "\n");
 
     RunTestWithPrint("DeviceId", TestDeviceId);
+    RunTestWithPrint("LbaTranslation", TestLbaTranslation);
 
     printf("\n"
            "Unit tests completed successfully.\n"

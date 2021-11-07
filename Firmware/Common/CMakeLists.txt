@@ -2,6 +2,7 @@ add_library(CommonLib INTERFACE)
 target_sources(CommonLib INTERFACE
     ${CMAKE_CURRENT_LIST_DIR}/DeviceId.cpp
     ${CMAKE_CURRENT_LIST_DIR}/IoConfig.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/LbaTranslation.cpp
     ${CMAKE_CURRENT_LIST_DIR}/LedController.cpp
     ${CMAKE_CURRENT_LIST_DIR}/PeripheralController.cpp
 
