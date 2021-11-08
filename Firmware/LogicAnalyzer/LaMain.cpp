@@ -23,22 +23,24 @@ static const LogicAnalyzer::CaptureType CAPTURE_TYPE = LogicAnalyzer::CaptureTyp
 static const size_t CAPTURE_MAX_SAMPLES = 48 * 1024;
 static const LogicAnalyzer::CpuClock OVERCLOCK_TYPE = LogicAnalyzer::CpuClock::Standard;
 
-#ifndef PICO_DEFAULT_LED_PIN
-#error Board with a regular LED required.
-#else
 const uint LED_PIN = PICO_DEFAULT_LED_PIN;
-#endif
+const uint INV_DRIVE_ACTIVE_PIN = 1;
+const uint BOOT_OVERRIDE_BUTTON_PIN = 2;
 
 void InitLed()
 {
-    const uint LED_PIN = PICO_DEFAULT_LED_PIN;
     gpio_init(LED_PIN);
     gpio_set_dir(LED_PIN, GPIO_OUT);
+
+    gpio_init(INV_DRIVE_ACTIVE_PIN);
+    gpio_set_dir(INV_DRIVE_ACTIVE_PIN, GPIO_OUT);
+    gpio_put(INV_DRIVE_ACTIVE_PIN, 1);
 }
 
 void SetLed(bool on)
 {
     gpio_put(LED_PIN, on ? 1 : 0);
+    gpio_put(INV_DRIVE_ACTIVE_PIN, on ? 0 : 1);
 }
 
 void DelayAndBlink(uint seconds)
@@ -50,6 +52,27 @@ void DelayAndBlink(uint seconds)
         SetLed(false);
         sleep_ms(500);
     } while (--seconds != 0);
+}
+
+void WaitForButtonPress()
+{
+    gpio_init(BOOT_OVERRIDE_BUTTON_PIN);
+    gpio_set_dir(BOOT_OVERRIDE_BUTTON_PIN, GPIO_IN);
+    gpio_pull_up(BOOT_OVERRIDE_BUTTON_PIN);
+
+    static const uint32_t STATE_HOLD_TIME_MS = 250;
+    uint32_t lastEventStart = time_us_32();
+    bool lastLedState = true;
+
+    while (gpio_get(BOOT_OVERRIDE_BUTTON_PIN) == true)
+    {
+        if (time_us_32() - lastEventStart > STATE_HOLD_TIME_MS * 1000)
+        {
+            lastLedState = !lastLedState;
+            SetLed(lastLedState);
+            lastEventStart = time_us_32();
+        }
+    }
 }
 
 void OutputSamplesHeader()
@@ -78,18 +101,6 @@ void OutputSamples(const LogicAnalyzer &logicAnalyzer)
     }
 }
 
-#include <hardware/adc.h>
-#include <cmath>
-void TestDeviceId()
-{
-    DelayAndBlink(2);
-
-    for (int i = 0; i < 256; i++)
-    {
-        DeviceId id = DeviceId::GenerateNewUnique();
-        printf("%02X%02X%02X%02X\n", id.GetSerialId()[0], id.GetSerialId()[1], id.GetSerialId()[2], id.GetSerialId()[3]);
-    }
-}
 
 int main()
 {
@@ -98,14 +109,11 @@ int main()
     InitLed();
     SetLed(true);
 
-    TestDeviceId();
-
     LogicAnalyzer logicAnalyzer(pio1, CAPTURE_TYPE, CAPTURE_MAX_SAMPLES);
     logicAnalyzer.InitPins();
     logicAnalyzer.InitSampling();
 
-    // TODO: Wait for button down here.
-    // Blink led whie waiting.
+    WaitForButtonPress();
 
     logicAnalyzer.StartSampling(OVERCLOCK_TYPE);
     SetLed(true);
@@ -123,14 +131,14 @@ int main()
 
         if (needRelease)
         {
-            if (false /* TODO: Button released */)
+            if (gpio_get(BOOT_OVERRIDE_BUTTON_PIN) == 1)
             {
                 needRelease = false;
             }
         }
         else
         {
-            if (false /* TODO: Button pressed */)
+            if (gpio_get(BOOT_OVERRIDE_BUTTON_PIN) == 0)
             {
                 logicAnalyzer.StopSampling();
                 break;    
