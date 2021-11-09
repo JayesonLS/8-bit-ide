@@ -15,6 +15,7 @@
 
 #pragma once
 
+// Centralized configuration for RP2040 GPIO's. 
 class IoConfig
 {
 public:
