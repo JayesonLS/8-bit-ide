@@ -1,4 +1,4 @@
-(module Reinforcing_Ring_Partial (layer F.Cu) (tedit 6172A77F)
+(module Reinforcing_Ring_Partial (layer F.Cu) (tedit 6188F7D3)
   (fp_text reference REF** (at 0.635 -3.81) (layer F.SilkS) hide
     (effects (font (size 1 1) (thickness 0.15)))
   )
@@ -14,4 +14,7 @@
   (pad 1 thru_hole circle (at 2.001547 -1.56378) (size 1 1) (drill 0.4) (layers *.Cu *.Mask))
   (pad 1 thru_hole circle (at 2.484495 -0.528096) (size 1 1) (drill 0.4) (layers *.Cu *.Mask))
   (pad 1 thru_hole circle (at -2.464551 0.614482) (size 1 1) (drill 0.4) (layers *.Cu *.Mask))
+  (pad 1 thru_hole circle (at 0 0) (size 4.3 4.3) (drill 3.2) (layers *.Cu *.Mask))
+  (pad 1 thru_hole circle (at -1.945753 1.632681) (size 1 1) (drill 0.4) (layers *.Cu *.Mask))
+  (pad 1 thru_hole circle (at 1.945753 1.632681) (size 1 1) (drill 0.4) (layers *.Cu *.Mask))
 )
