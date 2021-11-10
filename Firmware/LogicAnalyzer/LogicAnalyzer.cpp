@@ -30,6 +30,7 @@ bool LogicAnalyzer::Sample::operator==(const Sample& other) const
            inv_iow == other.inv_iow &&
            inv_ior == other.inv_ior &&
            inv_reset == other.inv_reset &&
+           data_dir == other.data_dir &&
            inv_cs == other.inv_cs &&
            irq == other.irq &&
            drq == other.drq;
@@ -67,6 +68,8 @@ void LogicAnalyzer::InitPins()
 
             if ((PULLUP_PIN_MASK & (1 << i)) != 0)
             {
+                // The pullups don't seem to actually work but leave this here
+                // anyway.
                 gpio_pull_up(i);            
             }
         }

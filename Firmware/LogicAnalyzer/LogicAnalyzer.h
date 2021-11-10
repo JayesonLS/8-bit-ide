@@ -67,7 +67,7 @@ public:
         uint ignore3 : 1; // SPI_TX
         uint inv_ior : 1;
         uint inv_reset : 1;
-        uint ignore4 : 1; // DATA_DIR
+        uint data_dir : 1;
         uint ignore5 : 3; // Internal GPIOs.
         uint inv_cs : 1;
         uint irq : 1;
@@ -89,6 +89,7 @@ public:
         uint GetInvCs() const { return inv_cs; }
         uint GetIrq() const { return irq; }
         uint GetDrq() const { return drq; }
+        uint GetDataDir() const { return data_dir; }
         uint GetTimeStamp() const { return -timeStamp & ((1 << num_timestamp_bits)-1); }
 
         bool operator==(const Sample& other) const;

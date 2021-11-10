@@ -77,7 +77,7 @@ void WaitForButtonPress()
 
 void OutputSamplesHeader()
 {
-    printf("Timestamp, Addr, Data, ~CS, AEN, ~IOR, ~IOW, DRQ, ~DACK, IRQ, ~RESET\n");
+    printf("Timestamp, Addr, Data, ~CS, AEN, ~IOR, ~IOW, DRQ, ~DACK, IRQ, ~RESET, DATA_DIR\n");
 }
 
 void OutputSamples(const LogicAnalyzer &logicAnalyzer)
@@ -94,7 +94,7 @@ void OutputSamples(const LogicAnalyzer &logicAnalyzer)
         {
             if (sample.IsValid())
             {
-                printf("%08X, %01X, %02X, %01X, %01X, %01X, %01X, %01X, %01X, %01X, %01\n", 
+                printf("%08X, %01X, %02X, %01X, %01X, %01X, %01X, %01X, %01X, %01X, %01X, %01X\n", 
                         sample.GetTimeStamp(), 
                         sample.GetAddr(),
                         sample.GetData(),
@@ -105,7 +105,8 @@ void OutputSamples(const LogicAnalyzer &logicAnalyzer)
                         sample.GetDrq(),
                         sample.GetInvDack(),
                         sample.GetIrq(),
-                        sample.GetInvReset()
+                        sample.GetInvReset(),
+                        sample.GetDataDir()
                         );
             }
         }
