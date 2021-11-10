@@ -14,17 +14,37 @@
 // along with this program.If not, see < https://www.gnu.org/licenses/>.
 
 #include <random>
+#include <string.h>
 #include <hardware/vreg.h>
 #include <hardware/dma.h>
 #include <hardware/structs/bus_ctrl.h>
 #include "LogicAnalyzer.h"
 #include "LogicAnalyzer.pio.h"
 
+bool LogicAnalyzer::Sample::operator==(const Sample& other) const
+{
+    return data == other.data &&
+           addr == other.addr &&
+           aen == other.aen &&
+           inv_dack == other.inv_dack &&
+           inv_iow == other.inv_iow &&
+           inv_ior == other.inv_ior &&
+           inv_reset == other.inv_reset &&
+           inv_cs == other.inv_cs &&
+           irq == other.irq &&
+           drq == other.drq;
+}
+
 LogicAnalyzer::LogicAnalyzer(PIO pio, CaptureType captureType, size_t maxSampleCount)
     : captureType(captureType)
     , pio(pio)
 {
     samples.resize(maxSampleCount);
+
+    for (Sample &sample : samples)
+    {
+        sample.MarkInvalid();
+    }
 }   
 
 LogicAnalyzer::~LogicAnalyzer()
@@ -37,13 +57,19 @@ LogicAnalyzer::~LogicAnalyzer()
     // Should really free up PIO and DMA resources but this class unlikley to be used in a way that needs it.
 }
 
-// We do this early to allow other state machines to change the
-// configuration of the pins.
 void LogicAnalyzer::InitPins()
 {
-    for (uint i = 0; i < CAPTURE_PIN_COUNT; i++)
+    for (uint i = CAPTURE_START_PIN; i < CAPTURE_START_PIN+CAPTURE_PIN_COUNT; i++)
     {
-        pio_gpio_init(pio, CAPTURE_START_PIN + i);
+        if ((SKIP_PIN_MASK & (1 << i)) == 0)
+        {
+            pio_gpio_init(pio, i);
+
+            if ((PULLUP_PIN_MASK & (1 << i)) != 0)
+            {
+                gpio_pull_up(i);            
+            }
+        }
     }
 }
 
@@ -72,11 +98,33 @@ void LogicAnalyzer::StopSampling()
     SetCpuClock(CpuClock::Standard);
 }
 
+void LogicAnalyzer::PostProcessSamples()
+{
+    for (size_t i = 1, lastUniqueIndex = 0; i < samples.size(); i++)
+    {
+        if (samples[i] == samples[lastUniqueIndex])
+        {
+            samples[i].MarkInvalid();
+        }
+        else
+        {
+            lastUniqueIndex = i;
+        }
+    }
+}
+
 bool LogicAnalyzer::IsSamplingComplete()
 { 
     // We are complete if the memory buffer is full / 
     // the dma to the memory buffer has completed.
     return !dma_channel_is_busy(dmaChan);
+}
+
+inline static uintptr_t __attribute__((always_inline)) dma_channel_get_read_addr(uint channel)
+{
+//    check_dma_channel_param(channel);
+    dma_channel_hw_t *hw = dma_channel_hw_addr(channel);
+    return hw->write_addr;
 }
 
 /*private */ void LogicAnalyzer::InitStateMachines()

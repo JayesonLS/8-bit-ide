@@ -83,21 +83,34 @@ void OutputSamplesHeader()
 void OutputSamples(const LogicAnalyzer &logicAnalyzer)
 {
     const std::vector<LogicAnalyzer::Sample>& samples = logicAnalyzer.GetSamples();
-    for (size_t i = 0; i < samples.size(); i++)
+
+    if (!samples.size())
     {
-        printf("%08X, %01X, %02X, %01X, %01X, %01X, %01X, %01X, %01X, %01X, %01\n", 
-                samples[i].GetTimeStamp(), 
-                samples[i].GetAddr(),
-                samples[i].GetData(),
-                samples[i].GetInvCs(),
-                samples[i].GetAen(),
-                samples[i].GetInvIor(),
-                samples[i].GetInvIow(),
-                samples[i].GetDrq(),
-                samples[i].GetInvDack(),
-                samples[i].GetIrq(),
-                samples[i].GetInvReset()
-                );
+        printf("No samples.\n");
+    }
+    else
+    {
+        for (const LogicAnalyzer::Sample &sample : samples)
+        {
+            if (sample.IsValid())
+            {
+                printf("%08X, %01X, %02X, %01X, %01X, %01X, %01X, %01X, %01X, %01X, %01\n", 
+                        sample.GetTimeStamp(), 
+                        sample.GetAddr(),
+                        sample.GetData(),
+                        sample.GetInvCs(),
+                        sample.GetAen(),
+                        sample.GetInvIor(),
+                        sample.GetInvIow(),
+                        sample.GetDrq(),
+                        sample.GetInvDack(),
+                        sample.GetIrq(),
+                        sample.GetInvReset()
+                        );
+            }
+        }
+
+        printf("Done.\n");
     }
 }
 
@@ -109,12 +122,10 @@ int main()
     InitLed();
     SetLed(true);
 
-    LogicAnalyzer logicAnalyzer(pio1, CAPTURE_TYPE, CAPTURE_MAX_SAMPLES);
-    logicAnalyzer.InitPins();
-    logicAnalyzer.InitSampling();
-
     WaitForButtonPress();
 
+    LogicAnalyzer logicAnalyzer(pio1, CAPTURE_TYPE, CAPTURE_MAX_SAMPLES);
+    logicAnalyzer.InitSampling();
     logicAnalyzer.StartSampling(OVERCLOCK_TYPE);
     SetLed(true);
 
@@ -147,6 +158,8 @@ int main()
     } while (!logicAnalyzer.IsSamplingComplete());
     
     SetLed(false);
+
+    logicAnalyzer.PostProcessSamples();
 
     OutputSamples(logicAnalyzer);
 

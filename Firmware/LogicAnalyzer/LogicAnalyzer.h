@@ -25,6 +25,16 @@ public:
     static const uint CAPTURE_START_PIN = 4;
     static const uint CAPTURE_PIN_COUNT = 25;
 
+    // Do not initialize these pins for PIO.
+    // BOOT_OVERRIDE, ~DRIVE_ACTIVE, 3x Pico internal pins including LED.
+    // TODO: Final hardware will move BOOT_OVERRIDE and ~DRIVE_ACTIVE  
+    static const uint SKIP_PIN_MASK = (1 << 2) | (1 << 3) | (1 << 23) | (1 << 24) | (1 << 25);
+    
+    // Set these pins to pullup.
+    // DATA_DIR, ~IRQ, ~DRQ.
+    // TODO: Final hardware will flip the direction of DATA_DIR
+    static const uint PULLUP_PIN_MASK = (1 << 22) | (1 << 27) | (1 << 28);
+
     enum class CaptureType
     {
         Sample,
@@ -67,6 +77,8 @@ public:
         static_assert(num_pin_bits + num_timestamp_bits == 32);
 
     public:
+        bool IsValid() const { return *((const uint32_t *)this) != 0xFFFFFFFF; }
+
         uint GetData() const { return data; }
         uint GetAddr() const { return addr; }
         uint GetAen() const { return aen; }
@@ -78,23 +90,29 @@ public:
         uint GetIrq() const { return irq; }
         uint GetDrq() const { return drq; }
         uint GetTimeStamp() const { return -timeStamp & ((1 << num_timestamp_bits)-1); }
-   };
+
+        bool operator==(const Sample& other) const;
+
+        void MarkInvalid() { *((uint32_t *)this) = 0xFFFFFFFF; }
+    };
 
     static_assert(sizeof(Sample) == 4);
 
     LogicAnalyzer(PIO pio, CaptureType captureType, size_t maxSampleCount);
     ~LogicAnalyzer();
 
-    void InitPins(); // We allow pin init early to allow other state machines to change the configuration of the pins.
     void InitSampling();
     void StartSampling(CpuClock cpuClock);
     void StopSampling();
     
     bool IsSamplingComplete();
 
+    void PostProcessSamples();
+
     const std::vector<Sample> &GetSamples() const { return samples; }
 
 private:
+    void InitPins();
     void InitStateMachines();
     void InitDma();
     void SetCpuClock(CpuClock cpuClock);
