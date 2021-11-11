@@ -23,7 +23,7 @@ class LogicAnalyzer
 {
 public:
     static const uint CAPTURE_START_PIN = 4;
-    static const uint CAPTURE_PIN_COUNT = 25;
+    static const uint CAPTURE_PIN_COUNT = 25; // This value should match num_pin_bits in LogicAnalyzer.pio. 
 
     // Do not initialize these pins for PIO.
     // BOOT_OVERRIDE, ~DRIVE_ACTIVE, 3x Pico internal pins including LED.
@@ -50,33 +50,13 @@ public:
 
     class Sample
     {    
-    private:
-        // These should match the values in logic_analyzer.pio.
-        static const int num_data_bits = 8;
-        static const int num_addr_bits = 2;
-        static const uint num_pin_bits = CAPTURE_PIN_COUNT;
-        static const uint num_timestamp_bits = 32-num_pin_bits;
-
-        uint data : num_data_bits;
-        uint addr : num_addr_bits;
-        uint aen : 1;
-        uint inv_dack : 1;
-        uint ingore1 : 1; //SPI_RX
-        uint inv_iow : 1;
-        uint ignore2 : 1; // SPI_SCK
-        uint ignore3 : 1; // SPI_TX
-        uint inv_ior : 1;
-        uint inv_reset : 1;
-        uint data_dir : 1;
-        uint ignore5 : 3; // Internal GPIOs.
-        uint inv_cs : 1;
-        uint irq : 1;
-        uint drq : 1;
-        uint timeStamp : num_timestamp_bits;
-
-        static_assert(num_pin_bits + num_timestamp_bits == 32);
-
     public:
+        // These should match the values in logic_analyzer.pio.
+        static const int NUM_DATA_BITS = 8;
+        static const int NUM_ADDR_BITS = 2;
+        static const uint NUM_PIN_BITS = CAPTURE_PIN_COUNT;
+        static const uint NUM_TIMESTAMP_BITS = 32-NUM_PIN_BITS;
+
         bool IsValid() const { return *((const uint32_t *)this) != 0xFFFFFFFF; }
 
         uint GetData() const { return data; }
@@ -90,11 +70,33 @@ public:
         uint GetIrq() const { return irq; }
         uint GetDrq() const { return drq; }
         uint GetDataDir() const { return data_dir; }
-        uint GetTimeStamp() const { return -timeStamp & ((1 << num_timestamp_bits)-1); }
+        uint GetTimeStamp() const { return -timeStamp & ((1 << NUM_TIMESTAMP_BITS)-1); }
+
+        uint GetRawPinBits() const { return *((uint32_t *)this) & ((1 << NUM_PIN_BITS)-1); }
 
         bool operator==(const Sample& other) const;
 
         void MarkInvalid() { *((uint32_t *)this) = 0xFFFFFFFF; }
+
+    private:
+        uint data : NUM_DATA_BITS;
+        uint addr : NUM_ADDR_BITS;
+        uint aen : 1;
+        uint inv_dack : 1;
+        uint ingore1 : 1; //SPI_RX
+        uint inv_iow : 1;
+        uint ignore2 : 1; // SPI_SCK
+        uint ignore3 : 1; // SPI_TX
+        uint inv_ior : 1;
+        uint inv_reset : 1;
+        uint data_dir : 1;
+        uint ignore5 : 3; // Internal GPIOs.
+        uint inv_cs : 1;
+        uint irq : 1;
+        uint drq : 1;
+        uint timeStamp : NUM_TIMESTAMP_BITS;
+
+        static_assert(NUM_PIN_BITS + NUM_TIMESTAMP_BITS == 32); 
     };
 
     static_assert(sizeof(Sample) == 4);

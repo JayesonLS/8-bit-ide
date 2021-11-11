@@ -68,8 +68,6 @@ void LogicAnalyzer::InitPins()
 
             if ((PULLUP_PIN_MASK & (1 << i)) != 0)
             {
-                // The pullups don't seem to actually work but leave this here
-                // anyway.
                 gpio_pull_up(i);            
             }
         }
@@ -78,6 +76,7 @@ void LogicAnalyzer::InitPins()
 
 void LogicAnalyzer::InitSampling()
 {
+    InitPins();
     InitStateMachines();
     InitDma();
 

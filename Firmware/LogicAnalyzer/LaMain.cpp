@@ -23,6 +23,8 @@ static const LogicAnalyzer::CaptureType CAPTURE_TYPE = LogicAnalyzer::CaptureTyp
 static const size_t CAPTURE_MAX_SAMPLES = 48 * 1024;
 static const LogicAnalyzer::CpuClock OVERCLOCK_TYPE = LogicAnalyzer::CpuClock::Standard;
 
+static const bool DISPLAY_RAW = false;
+
 const uint LED_PIN = PICO_DEFAULT_LED_PIN;
 const uint INV_DRIVE_ACTIVE_PIN = 1;
 const uint BOOT_OVERRIDE_BUTTON_PIN = 2;
@@ -94,20 +96,33 @@ void OutputSamples(const LogicAnalyzer &logicAnalyzer)
         {
             if (sample.IsValid())
             {
-                printf("%08X, %01X, %02X, %01X, %01X, %01X, %01X, %01X, %01X, %01X, %01X, %01X\n", 
-                        sample.GetTimeStamp(), 
-                        sample.GetAddr(),
-                        sample.GetData(),
-                        sample.GetInvCs(),
-                        sample.GetAen(),
-                        sample.GetInvIor(),
-                        sample.GetInvIow(),
-                        sample.GetDrq(),
-                        sample.GetInvDack(),
-                        sample.GetIrq(),
-                        sample.GetInvReset(),
-                        sample.GetDataDir()
-                        );
+                if (DISPLAY_RAW)
+                {
+                    uint rawPinBits = sample.GetRawPinBits();
+                    //for (int bitMask = 1 << (LogicAnalyzer::Sample::NUM_PIN_BITS-1); bitMask; bitMask >>= 1)
+                    for (int bitMask = 1 ; bitMask < (1 << LogicAnalyzer::Sample::NUM_PIN_BITS); bitMask <<= 1)
+                    {
+                        printf("%c", rawPinBits & bitMask ? '1' : '0');
+                    }
+                    printf("\n");
+                }
+                else
+                {
+                    printf("%d, %01X, %02X, %01X, %01X, %01X, %01X, %01X, %01X, %01X, %01X, %01X\n", 
+                            sample.GetTimeStamp(), 
+                            sample.GetAddr(),
+                            sample.GetData(),
+                            sample.GetInvCs(),
+                            sample.GetAen(),
+                            sample.GetInvIor(),
+                            sample.GetInvIow(),
+                            sample.GetDrq(),
+                            sample.GetInvDack(),
+                            sample.GetIrq(),
+                            sample.GetInvReset(),
+                            sample.GetDataDir()
+                            );
+                }
             }
         }
 
