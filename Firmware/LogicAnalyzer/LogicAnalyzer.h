@@ -76,6 +76,7 @@ public:
 
         bool operator==(const Sample& other) const;
 
+        void ClearTimeStamp() { timeStamp = 0; }
         void MarkInvalid() { *((uint32_t *)this) = 0xFFFFFFFF; }
 
     private:

@@ -102,16 +102,30 @@ void LogicAnalyzer::StopSampling()
 
 void LogicAnalyzer::PostProcessSamples()
 {
-    for (size_t i = 1, lastUniqueIndex = 0; i < samples.size(); i++)
+    switch (captureType)
     {
-        if (samples[i] == samples[lastUniqueIndex])
-        {
-            samples[i].MarkInvalid();
-        }
-        else
-        {
-            lastUniqueIndex = i;
-        }
+        case CaptureType::Sample:
+            for (size_t i = 1, lastUniqueIndex = 0; i < samples.size(); i++)
+            {
+                if (samples[i] == samples[lastUniqueIndex])
+                {
+                    samples[i].MarkInvalid();
+                }
+                else
+                {
+                    lastUniqueIndex = i;
+                }
+            }
+            break;
+        case CaptureType::DataValues:
+            for (size_t i = 0; i < samples.size(); i++)
+            {
+                samples[i].ClearTimeStamp();
+            }
+            break;
+        default:
+            panic("Unhandled CaptureType case.");
+            break;
     }
 }
 

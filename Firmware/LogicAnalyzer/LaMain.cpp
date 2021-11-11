@@ -19,7 +19,7 @@
 #include <DeviceId.h>
 #include "LogicAnalyzer.h"
 
-static const LogicAnalyzer::CaptureType CAPTURE_TYPE = LogicAnalyzer::CaptureType::Sample;
+static const LogicAnalyzer::CaptureType CAPTURE_TYPE = LogicAnalyzer::CaptureType::DataValues;
 static const size_t CAPTURE_MAX_SAMPLES = 48 * 1024;
 static const LogicAnalyzer::CpuClock OVERCLOCK_TYPE = LogicAnalyzer::CpuClock::Standard;
 
@@ -79,6 +79,11 @@ void WaitForButtonPress()
 
 void OutputSamplesHeader()
 {
+    if (CAPTURE_TYPE == LogicAnalyzer::CaptureType::DataValues)
+    {
+        printf("Type, Addr, Data, , ");
+    }
+
     printf("Timestamp, Addr, Data, ~CS, AEN, ~IOR, ~IOW, DRQ, ~DACK, IRQ, ~RESET, DATA_DIR\n");
 }
 
@@ -108,6 +113,35 @@ void OutputSamples(const LogicAnalyzer &logicAnalyzer)
                 }
                 else
                 {
+                    if (CAPTURE_TYPE == LogicAnalyzer::CaptureType::DataValues)
+                    {
+                        if (!sample.GetInvIor() && sample.GetInvIow() && !sample.GetInvCs() && sample.GetInvDack())
+                        {
+                            printf("IO R, ");
+                        }
+                        else if (sample.GetInvIor() && !sample.GetInvIow() && !sample.GetInvCs() && sample.GetInvDack())
+                        {
+                            printf("IO W, ");
+                        }
+                        else if (!sample.GetInvIor() && sample.GetInvIow() && sample.GetInvCs() && !sample.GetInvDack())
+                        {
+                            printf("DMA R, ");
+                        }
+                        else if (sample.GetInvIor() && sample.GetInvIow() && sample.GetInvCs() && !sample.GetInvDack())
+                        {
+                            printf("DMA W, ");
+                        }
+                        else
+                        {
+                            printf("???, ");
+                        }
+
+                        printf("%01X, 0x%02X, , ", 
+                                sample.GetAddr(),
+                                sample.GetData()
+                        );
+                    }
+
                     printf("%d, %01X, %02X, %01X, %01X, %01X, %01X, %01X, %01X, %01X, %01X, %01X\n", 
                             sample.GetTimeStamp(), 
                             sample.GetAddr(),

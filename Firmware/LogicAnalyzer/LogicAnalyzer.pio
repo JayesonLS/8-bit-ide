@@ -102,7 +102,7 @@ wait_for_io_rw_low:
 wait_for_io_rw_high:    
     mov isr, y      ; Update previous value
     mov osr, pins
-    mov y, pins     ; Save so we can update previous value.
+    mov y, osr      ; Save so we can update previous value.
     out null, 13    ; Skip to ~IOW
     out x, 1        ; ~IOW to X (want 1)
     jmp !x wait_for_io_rw_high
@@ -121,6 +121,6 @@ check_decode:
 check_for_ior:
     out null, 11    ; Skip to ~CS
     out x, 1        ; ~CS to X (want 1)
-    jmp !x, wait_for_io_rw_low
+    jmp x--, wait_for_io_rw_low
 decode_match:
     push block
