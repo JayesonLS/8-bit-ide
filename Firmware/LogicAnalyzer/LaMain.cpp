@@ -81,10 +81,108 @@ void OutputSamplesHeader()
 {
     if (CAPTURE_TYPE == LogicAnalyzer::CaptureType::DataValues)
     {
-        printf("Type, Addr, Data, , ");
+        printf("Type, Addr, Data, Info, Repeat\n");
+    }
+    else
+    {
+        printf("Timestamp, Addr, Data, ~CS, AEN, ~IOR, ~IOW, DRQ, ~DACK, IRQ, ~RESET, DATA_DIR\n");
+    }
+}
+
+void OutputDataValueSample(const LogicAnalyzer::Sample &sample, uint repeat)
+{
+    if (!sample.IsValid())
+    {
+        return;
     }
 
-    printf("Timestamp, Addr, Data, ~CS, AEN, ~IOR, ~IOW, DRQ, ~DACK, IRQ, ~RESET, DATA_DIR\n");
+    bool isIoRead = false;
+    bool isIoWrite = false;
+    bool isDmaRead = false;
+    bool isDmaWrite = false;
+
+    if (!sample.GetInvIor() && sample.GetInvIow() && !sample.GetInvCs() && sample.GetInvDack())
+    {
+        printf("IO R, ");
+        isIoRead = true;
+    }
+    else if (sample.GetInvIor() && !sample.GetInvIow() && !sample.GetInvCs() && sample.GetInvDack())
+    {
+        printf("IO W, ");
+        isIoWrite = true;
+    }
+    else if (!sample.GetInvIor() && sample.GetInvIow() && sample.GetInvCs() && !sample.GetInvDack())
+    {
+        printf("DMA R, ");
+        isDmaRead = true;
+    }
+    else if (sample.GetInvIor() && sample.GetInvIow() && sample.GetInvCs() && !sample.GetInvDack())
+    {
+        printf("DMA W, ");
+        isDmaWrite = true;
+    }
+    else
+    {
+        printf("???, ");
+    }
+
+    const char *info = "";
+    uint addr = sample.GetAddr();
+
+    if (isIoRead)
+    {
+        switch (addr)
+        {
+            case 0:
+                info = "data";
+                break;
+            case 1:
+                info = "status";
+                break;
+            case 2:
+                info = "config";
+                break;
+            case 3:
+                info = "no register";
+                break;
+            default:
+                panic("Bad address switch.");
+                break;
+        }
+    }
+    else if (isIoWrite)
+    {
+        switch (addr)
+        {
+            case 0:
+                info = "data";
+                break;
+            case 1:
+                info = "reset";
+                break;
+            case 2:
+                info = "select";
+                break;
+            case 3:
+                info = "dma/irq";
+                break;
+            default:
+                panic("Bad address switch.");
+                break;
+        }
+    }
+    else if (isDmaRead || isDmaWrite)
+    {
+        info = "data";
+    }
+
+    printf("%01X, 0x%02X, %s, ", sample.GetAddr(), sample.GetData(), info);
+
+    if (repeat > 1)
+    {
+        printf("%d", repeat);
+    }
+    printf("\n");
 }
 
 void OutputSamples(const LogicAnalyzer &logicAnalyzer)
@@ -97,65 +195,62 @@ void OutputSamples(const LogicAnalyzer &logicAnalyzer)
     }
     else
     {
-        for (const LogicAnalyzer::Sample &sample : samples)
+        if (CAPTURE_TYPE == LogicAnalyzer::CaptureType::DataValues && !DISPLAY_RAW)
         {
-            if (sample.IsValid())
+            uint repeatCount = 1;
+
+            for (size_t i = 1; i < samples.size(); i++)
             {
-                if (DISPLAY_RAW)
+                if (samples[i].GetInvIor() == samples[i-1].GetInvIor() &&
+                    samples[i].GetInvIow() == samples[i-1].GetInvIow() &&
+                    samples[i].GetInvCs() == samples[i-1].GetInvCs() &&
+                    samples[i].GetInvDack() == samples[i-1].GetInvDack() &&
+                    samples[i].GetAddr() == samples[i-1].GetAddr() &&
+                    samples[i].GetData() == samples[i-1].GetData())
                 {
-                    uint rawPinBits = sample.GetRawPinBits();
-                    //for (int bitMask = 1 << (LogicAnalyzer::Sample::NUM_PIN_BITS-1); bitMask; bitMask >>= 1)
-                    for (int bitMask = 1 ; bitMask < (1 << LogicAnalyzer::Sample::NUM_PIN_BITS); bitMask <<= 1)
-                    {
-                        printf("%c", rawPinBits & bitMask ? '1' : '0');
-                    }
-                    printf("\n");
+                    repeatCount++;
                 }
                 else
                 {
-                    if (CAPTURE_TYPE == LogicAnalyzer::CaptureType::DataValues)
+                    OutputDataValueSample(samples[i-1], repeatCount);
+                    repeatCount = 1;
+                }
+            }
+            OutputDataValueSample(samples[samples.size()-1], repeatCount);
+        }
+        else
+        {
+            for (const LogicAnalyzer::Sample &sample : samples)
+            {
+                if (sample.IsValid())
+                {
+                    if (DISPLAY_RAW)
                     {
-                        if (!sample.GetInvIor() && sample.GetInvIow() && !sample.GetInvCs() && sample.GetInvDack())
+                        uint rawPinBits = sample.GetRawPinBits();
+                        //for (int bitMask = 1 << (LogicAnalyzer::Sample::NUM_PIN_BITS-1); bitMask; bitMask >>= 1)
+                        for (int bitMask = 1 ; bitMask < (1 << LogicAnalyzer::Sample::NUM_PIN_BITS); bitMask <<= 1)
                         {
-                            printf("IO R, ");
+                            printf("%c", rawPinBits & bitMask ? '1' : '0');
                         }
-                        else if (sample.GetInvIor() && !sample.GetInvIow() && !sample.GetInvCs() && sample.GetInvDack())
-                        {
-                            printf("IO W, ");
-                        }
-                        else if (!sample.GetInvIor() && sample.GetInvIow() && sample.GetInvCs() && !sample.GetInvDack())
-                        {
-                            printf("DMA R, ");
-                        }
-                        else if (sample.GetInvIor() && sample.GetInvIow() && sample.GetInvCs() && !sample.GetInvDack())
-                        {
-                            printf("DMA W, ");
-                        }
-                        else
-                        {
-                            printf("???, ");
-                        }
-
-                        printf("%01X, 0x%02X, , ", 
-                                sample.GetAddr(),
-                                sample.GetData()
-                        );
+                        printf("\n");
                     }
-
-                    printf("%d, %01X, %02X, %01X, %01X, %01X, %01X, %01X, %01X, %01X, %01X, %01X\n", 
-                            sample.GetTimeStamp(), 
-                            sample.GetAddr(),
-                            sample.GetData(),
-                            sample.GetInvCs(),
-                            sample.GetAen(),
-                            sample.GetInvIor(),
-                            sample.GetInvIow(),
-                            sample.GetDrq(),
-                            sample.GetInvDack(),
-                            sample.GetIrq(),
-                            sample.GetInvReset(),
-                            sample.GetDataDir()
-                            );
+                    else
+                    {
+                        printf("%d, %01X, %02X, %01X, %01X, %01X, %01X, %01X, %01X, %01X, %01X, %01X\n", 
+                                sample.GetTimeStamp(), 
+                                sample.GetAddr(),
+                                sample.GetData(),
+                                sample.GetInvCs(),
+                                sample.GetAen(),
+                                sample.GetInvIor(),
+                                sample.GetInvIow(),
+                                sample.GetDrq(),
+                                sample.GetInvDack(),
+                                sample.GetIrq(),
+                                sample.GetInvReset(),
+                                sample.GetDataDir()
+                                );
+                    }
                 }
             }
         }
