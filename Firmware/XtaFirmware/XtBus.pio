@@ -259,6 +259,9 @@ do_read:
 .program read_control_register
 .side_set 1 opt						; Side set maps to data_dir
 
+not_320:
+    jmp y-- not_321                 ; Jump on  !0b00001
+
 read_321:
     mov isr, ~osr                   ; Copy with invert ~DRQ and ~IRQ still sitting in OSR (TODO: This inversion may not be necessary here - looks like it can be done with GPIOx_CTRL)
     in x, 4	side 1					; Shift in the 4 status bits from X, reverse tranceiver direction (also signals pindir change)
@@ -275,9 +278,13 @@ wait_for_read_start:
     mov osr, pins					; in pins are configured to start at address lines
     out y, 5						; Shift A0, A1, ~IOR, ~CS, AEN into Y 
                                     ; (want A1A0= 01 or 10, last 3 all 0)
-    jmp y-- wait_for_read_start     ; Jump on  0b00000
-    jmp y-- read_321                ; Jump on  0b00001
-    jmp !y  wait_for_read_start     ; Jump on !0b00010
+    jmp y-- not_320                 ; Jump on  !0b00000
+
+    ; Fall through. Y will have post-decremented to 0xFFFFFFFF
+    ; and so the next jump will be taken.
+
+not_321:
+    jmp y-- wait_for_read_start     ; Jump on !0b00010
 
 read_322:
     in  x, 16 side 1                ; Shift in data, skipping register_321's bits. Also reverse tranceiver direction/signals pindir change.
