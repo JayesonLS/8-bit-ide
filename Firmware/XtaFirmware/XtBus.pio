@@ -144,7 +144,7 @@ write_address_2:
     ; Fall through. Writing the value is not needed for either address 1 or
     ; address 2, however we can just consume the value on the CPU. 
 
-                                                                                                                          not_address_2:
+not_address_2:
 write_address_3:
     ; Write to address 3 is the DMA/IRQ enable bits.
 wait_for_write_end:
