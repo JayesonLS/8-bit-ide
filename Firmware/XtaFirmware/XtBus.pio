@@ -120,7 +120,7 @@ wait_for_write_start:
 ;
 ; We should skip the first instruction on program start.
 ;-----------------------------------------------------------------------------------------
-.program write_control_regs
+.program write_control_register
 
 not_address_0:
     jmp y-- not_address_1           ; Jump if address 2 or 3
@@ -191,61 +191,6 @@ wait_for_read_start:
     wait 1 pin 2					; Wait for ~IOR high. set_pindirs will take care of restoring pindirs and tranceiver dir.
 
 ;-----------------------------------------------------------------------------------------
-; Register 1 is the flags register.
-;
-; Note: We must constantly pull from the FIFO to keep the
-; register value up to date.
-;
-; 10 instructions. Up to 12 cycle delay (+ external delays) to set up read.
-; See top of file for a discussion on max delays. 
-;-----------------------------------------------------------------------------------------
-.program read_register_1
-.side_set 1 opt						; Side set maps to data_dir
-
-wait_for_read_start:
-    pull noblock					; Keep read values up to date. If FIFO is empty,
-    mov x, osr						; X is moved to OSR. So save read values in X.
-    ; For 2 cycle lower worst case latency we can do a "jmp pin wait_for_read_start" here on ~IOR.
-    mov osr, pins					; in pins are configured to start at address lines
-    out y, 5						; Shift A1, A0, ~IOR, ~CS, AEN into Y 
-                                    ; (want A0A1= 01 or 10, last 3 all 0)
-    jmp y-- wait_for_read_start     ; Jump on  0b00000
-    jmp !y wait_for_read_start      ; Jump on !0b00001
-
-do_read:
-    mov isr, ~osr                   ; Copy with invert ~DRQ and ~IRQ still sitting in OSR. (TODO: This inversion may not be necessary here - looks like it can be done with GPIOx_CTRL)
-    in x, 4	side 1					; Shift in the 4 status bits from X, reverse tranceiver direction (also signals pindir change)
-                                    ; (Setting tranceiver direction will result in other program setting pindirs)
-    mov pins, isr					; Set data.
-    wait 1 pin 2					; Wait for ~IOR high. set_pindirs will take care of restoring pindirs and tranceiver dir.
-
-;-----------------------------------------------------------------------------------------
-; Register 2 is a configuration register. We don't need to constantly keep the FIFO empty.
-; Instead we will send an ID sequence through the top bit.
-; Setup code should init X to somethign known to handle the case where the FIFO is 
-; accidentally empty. FF perhaps?
-;
-; 8 instructions. Up to 11 cycle delay (+ external delays) to set up read.
-; See top of file for a discussion on max delays. 
-;-----------------------------------------------------------------------------------------
-.program read_register_2
-.side_set 1 opt
-wait_for_read_start:
-    ; For 4 cycle lower worst case latency we can do a "wait 0 pin 2" here on ~IOR.
-    mov osr, pins                   ; in pins are configured to start at address lines
-    out y, 5                        ; A0, A1, ~IOR, ~CS, AEN to Y (want 0b00010)
-    jmp y-- wait_for_read_start     ; Jump if  0b00000
-    jmp y-- wait_for_read_start     ; Jump if  0b00001
-    jmp !y wait_for_read_start      ; Jump if !0b00010
-
-do_read:
-    pull noblock side 1				; Get data and change tranceiver direction. We will use DMA/interrupt
-                                    ; to constantly feed the FIFO to avoid having to save the value to X.
-                                    ; set_pindirs will change pindirs for us when the tranceiver direction changes.
-    out pins, 8						; Set data
-    wait 1 pin 2					; Wait for ~IOR high. set_pindirs will take care of restoring pindirs and tranceiver dir.
-
-;-----------------------------------------------------------------------------------------
 ; Combined read of either control register. Probably fine to use individual programs but
 ; writing it anyway to explore.
 ; Register 1 is the flags register, 2 is the configuration register.
@@ -253,7 +198,7 @@ do_read:
 ; Note: We must constantly pull from the FIFO to keep the
 ; flags register value up to date.
 ;
-; 13 instructions. Up to 13 cycle delay (+ external delays) to set up read.
+; 13 instructions. Up to 11 cycle delay (+ external delays) to set up read.
 ; See top of file for a discussion on max delays. 
 ;-----------------------------------------------------------------------------------------
 .program read_control_register
