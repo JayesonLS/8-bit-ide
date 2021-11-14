@@ -116,7 +116,7 @@ wait_for_write_start:
 ; This approach to implementation requires the CPU to very quickly update
 ; the read value for register 1 to indicate busy. Should probably dedicate a CPU to this.
 ; TODO: We must start this program at the "wait 1 pin 10" line (one before the wrap target)
-; 14 instructions.
+; 16 instructions.
 ;
 ; We should skip the first instruction on program start.
 ;-----------------------------------------------------------------------------------------
@@ -135,16 +135,18 @@ write_address_1:
     ; The polling loop will check for the reset interrupt first
     ; and clear both interrupts.
 not_address_1:
-    jmp y-- not_address_2			; Jump if address 3 (or 1). 
+    jmp y-- not_address_2 
 
 write_address_2:
     ; Write to address 2 is select controller
     irq nowait 1				    ; Trigger select interrupt
 
-    ; Fall through. Writing the value is not needed for either address 1 or
-    ; address 2, however we can just consume the value on the CPU. 
+    ; Fall through. Y will have been post-decremeneted 
+    ; to 0xFFFFFFFF so we will skip to wait_for_write_end
 
 not_address_2:
+    jmp y-- wait_for_write_end_2      ; If we did not decode for address 0, 1, 2, or 3, then one of ~CS oe AEN must have been high.
+
 write_address_3:
     ; Write to address 3 is the DMA/IRQ enable bits.
 wait_for_write_end:
@@ -157,6 +159,9 @@ write_value:
     ; TODO: Should we clear IRQ here if the value is cleared? Same for DRQ?
     push block						; Send the last value read before ~IOW went high.
 
+wait_for_write_end_2:
+    wait 1 pin 10                   ; Wait for end of write cycle. For address 3, it will have 
+                                    ; already ended and the redunant wait is not an issue.
 .wrap_target
 wait_for_write_start:
     wait 0 pin 10                   ; Wait for ~IOW low
@@ -198,7 +203,7 @@ wait_for_read_start:
 ; Note: We must constantly pull from the FIFO to keep the
 ; flags register value up to date.
 ;
-; 13 instructions. Up to 11 cycle delay (+ external delays) to set up read.
+; 13 instructions. Up to 13 cycle delay (+ external delays) to set up read.
 ; See top of file for a discussion on max delays. 
 ;-----------------------------------------------------------------------------------------
 .program read_control_register
@@ -213,7 +218,6 @@ read_321:
 
 .wrap_target
     mov pins, isr					; (Setting tranceiver direction will result in other program setting pindirs)
-    push noblock                    ; Signal to CPU that we had a config register read so CPU can update the serial-ID bit in bit 7 of the config register
     wait 1 pin 2					; Wait for ~IOR high. set_pindirs will take care of restoring pindirs and tranceiver dir
 
 wait_for_read_start:
@@ -233,6 +237,7 @@ not_321:
 
 read_322:
     in  x, 16 side 1                ; Shift in data, skipping register_321's bits. Also reverse tranceiver direction/signals pindir change.
+    irq nowait 2				    ; Signal to CPU that we had a config register read so CPU can update the serial-ID bit in bit 7 of the config register
 .wrap    
 
 ;-----------------------------------------------------------------------------------------
