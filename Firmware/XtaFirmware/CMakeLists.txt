@@ -3,7 +3,7 @@ if (TARGET tinyusb_device)
                 XtaMain.cpp
                 )
 
-        pico_generate_pio_header(XtaFirmware ${CMAKE_CURRENT_LIST_DIR}/Isa.pio)
+        pico_generate_pio_header(XtaFirmware ${CMAKE_CURRENT_LIST_DIR}/XtBus.pio)
                 
         # Pull in our pico_stdlib which aggregates commonly used features
         target_link_libraries(XtaFirmware CommonLib CommonTestsLib)
