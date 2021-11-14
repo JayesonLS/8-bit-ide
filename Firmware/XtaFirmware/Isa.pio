@@ -116,15 +116,46 @@ wait_for_write_start:
 ; This approach to implementation requires the CPU to very quickly update
 ; the read value for register 1 to indicate busy. Should probably dedicate a CPU to this.
 ; TODO: We must start this program at the "wait 1 pin 10" line (one before the wrap target)
-; 15 instructions.
+; 14 instructions.
 ;
 ; We should skip the first instruction on program start.
 ;-----------------------------------------------------------------------------------------
 .program write_control_regs
+
+not_address_0:
+    jmp y-- not_address_1           ; Jump if address 2 or 3
+write_address_1:
+    ; Write to address 1 is reset controller
+    irq wait 0						; Trigger reset interupt
+
+    ; The control flow is a but confusing here. The jump will
+    ; be taken on fall-through as Y will have been post-decremeneted 
+    ; to 0xFFFFFFFF.
+    ; Does not matter if we trigger the select interrupt anyway.
+    ; The polling loop will check for the reset interrupt first
+    ; and clear both interrupts.
+not_address_1:
+    jmp y-- not_address_2			; Jump if address 3 (or 1). 
+
 write_address_2:
     ; Write to address 2 is select controller
     irq nowait 1				    ; Trigger select interrupt
-    wait 1 pin 10                   ; Wait for ~IOW high
+
+    ; Fall through. Writing the value is not needed for either address 1 or
+    ; address 2, however we can just consume the value on the CPU. 
+
+                                                                                                                          not_address_2:
+write_address_3:
+    ; Write to address 3 is the DMA/IRQ enable bits.
+wait_for_write_end:
+    mov osr, pins                   ; Keep saving pin values until we see the end of the write.
+    jmp pin write_value				; Break if ~IOW has gone high.
+    mov isr, osr                    ; Update previous value
+    jmp wait_for_write_end
+
+write_value:
+    ; TODO: Should we clear IRQ here if the value is cleared? Same for DRQ?
+    push block						; Send the last value read before ~IOW went high.
 
 .wrap_target
 wait_for_write_start:
@@ -132,30 +163,8 @@ wait_for_write_start:
     mov osr, pins
     out null, 10					; Skip data, ~DACK, ~IOW
     out y, 4						; A0, A1, ~CS and AEN to Y (want 0b0001, 0b0010 or 0b0011)
-    jmp y-- wait_for_write_start    ; Jump if 0b00000
-    jmp y-- not_address_1			; Jump if address 2 or 3
-
-write_address_1:
-    ; Write to address 1 is reset controller
-    irq wait 0						; Trigger reset interupt and halt the program 
-
-not_address_1:
-    jmp !y write_address_2			; Jump if address 2
-
-write_address_3:
-    ; Write to address 2 is the DMA/IRQ enable bits.
-wait_for_write_end:
-    mov osr, pins
-    jmp pin write_value				; Break if ~IOW has gone high.
-    mov isr, osr                    ; Update previous value
-    jmp wait_for_write_end
-
-write_value:
-    ; TODO: Should we clear IRQ here if the value is cleared? Same for DRQ?
-    ; If we don't need to be clearing DRQ/IRQ, then we can let write_address_2 fall through
-    ; to write_address_3, move the push block to the top and remove the bottom jump.
-    ; (Save 2 instructions) 
-    push block						; Send the last value read before ~IOW went high.
+    jmp y-- not_address_0           ; Jump if address 1, 2 or 3.
+.wrap
 
 ;-----------------------------------------------------------------------------------------
 ; Non-DMA reads from data register. Simply pulls a value and returns it on every read.
