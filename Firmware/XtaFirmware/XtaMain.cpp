@@ -21,6 +21,11 @@
 #include <UnitTest.h>
 #include <UnitDemo.h>
 
+
+#include <pico/multicore.h>
+#include "hardware/pio.h"
+
+
 static void Intialize()
 {
     // We run this as early as possible just in case some output is driving something
@@ -44,12 +49,73 @@ static void RunTests()
     //UnitDemo::RunPerphieralControllerButtonDemo();
 }
 
+
+#define __scratch_x_func(func_name) __scratch_x(__STRING(func_name)) func_name
+
+volatile uint __scratch_x_func(loopCount);
+
+void __scratch_x_func(SecondCorePollingLoop)()
+{
+    uint count = 0;
+
+    // Just a mock up of what the tight polling loop needs to do.
+
+	while(1)
+	{
+        if (pio0->intr)
+        {
+            pio0->intr = 0;
+        }
+
+        if (pio1->intr)
+        {
+            pio1->intr = 0;
+        }
+
+        if (!pio_sm_is_rx_fifo_empty(pio0, 0))
+        {
+            pio_sm_get(pio0, 0);
+        }
+
+        if (sio_hw->fifo_st & SIO_FIFO_ST_VLD_BITS)
+        {
+            (void) sio_hw->fifo_rd;
+        }
+
+        count++;
+        loopCount = count;
+	}
+}
+
 int main()
 {
     Intialize();
 
-    RunTests();
+    // RunTests();
 
+    // Test second core.
+    {
+        // Allow time to connect USB serial monitor.
+        for (int i = 0; i < 6; i++)
+        {
+            printf("Waiting...\n");
+            sleep_ms(500);
+        }
+
+        printf("SecondCorePollingLoop() address: %08X\n", (uint)SecondCorePollingLoop);
+
+    	multicore_launch_core1(SecondCorePollingLoop);
+
+        while(1)
+        {
+            uint startCount = loopCount;
+            sleep_ms(1000);
+            uint endCount = loopCount;
+            double cyclesPerLoop = (125000000.0) / (double)(endCount - startCount);
+
+            printf ("Cycles per loop: %.2f\n", cyclesPerLoop);
+        }
+    }
 
     return 0;
 }

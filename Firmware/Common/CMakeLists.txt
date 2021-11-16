@@ -20,6 +20,7 @@ target_include_directories(CommonLib INTERFACE
 
 target_link_libraries(CommonLib INTERFACE
     pico_stdlib
+    pico_multicore
     hardware_adc
     hardware_clocks
     hardware_spi
