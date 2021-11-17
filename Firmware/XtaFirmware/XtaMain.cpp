@@ -120,8 +120,8 @@ int main()
 
         printf("SecondCorePollingLoop() address: %08X\n", (uint)SecondCorePollingLoop);
 
-    	//multicore_launch_core1(SecondCorePollingLoop);
-    	multicore_launch_core1(SecondCorePollingLoopCRef);
+    	multicore_launch_core1(SecondCorePollingLoop);
+    	//multicore_launch_core1(SecondCorePollingLoopCRef);
 
         set_sys_clock_khz(125000, true);
 
