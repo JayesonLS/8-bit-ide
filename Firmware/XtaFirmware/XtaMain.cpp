@@ -67,138 +67,41 @@ extern "C"
         return 1;
     }
 
-
     void __scratch_x_func(SecondCorePollingLoopCRef)()
     {
         static const uint32_t sm = 0;
-        uint count = 0;
-        uint32_t regValue;
 
         // Just a mock up of what the tight polling loop needs to do.
 
         while(1)
         {
-            count++;
-            loopCount = count;
+            sio_hw->fifo_wr = 0; // Write to FIFO so other CPU can count the number of loops.
 
-            regValue = pio0->intr;
-            if (regValue & (PIO_INTR_SM0_BITS | PIO_INTR_SM1_BITS))
+            if (pio0->intr & (PIO_INTR_SM0_BITS | PIO_INTR_SM1_BITS))
             {
-                goto pio0intr;
-            }
-            for (int i = 0 ; i < 1000; i++ )
-            {
-                
-            }
-        
-            regValue = pio1->intr;
-            if (regValue & (PIO_INTR_SM0_BITS))
-            {
-                goto pio1intr;
-            }
-
-            for (int i = 0 ; i < 1000; i++ )
-            {
-
-            }
-    
-            regValue = pio0->fstat;
-            if (regValue &  (1u << (PIO_FSTAT_RXEMPTY_LSB + sm)))
-            {
-                goto pio0sm0fifo;
-            }
-
-            for (int i = 0 ; i < 1000; i++ )
-            {
-                
-            }
-
-            regValue = sio_hw->fifo_st;
-            if (!(regValue & SIO_FIFO_ST_VLD_BITS))
-            {
+                pio0->intr = 0;
                 continue;
             }
-            switch (sio_hw->fifo_rd & 0x07)
+
+            if (pio1->intr & (PIO_INTR_SM0_BITS))
             {
-                case 0:
-                    for (int i = 0 ; i < 100; i++ )
-                    {
-                        (void)sio_hw->fifo_rd;
-                    }
-                    break;
-                case 1:
-                    for (int i = 0 ; i < 1000; i++ )
-                    {
-                        (void)sio_hw->fifo_rd;
-                    }
-                    break;
-                case 2:
-                    for (int i = 0 ; i < 10000; i++ )
-                    {
-                        (void)sio_hw->fifo_rd;
-
-                    }
-                    break;
-                case 3:
-                    for (int i = 0 ; i < 100000; i++ )
-                    {
-                        (void)sio_hw->fifo_rd;
-                        
-                    }
-                    break;
-                case 4:
-                    for (int i = 0 ; i < 1000000; i++ )
-                    {
-                        (void)sio_hw->fifo_rd;
-                        
-                    }
-                    break;
-                case 5:
-                    for (int i = 0 ; i < 200; i++ )
-                    {
-                        (void)sio_hw->fifo_rd;
-                        
-                    }
-                    break;
-                case 6:
-                    for (int i = 0 ; i < 300; i++ )
-                    {
-                        (void)sio_hw->fifo_rd;
-                        
-                    }
-                    break;
-                case 7:
-                    for (int i = 0 ; i < 100; i++ )
-                    {
-                        (void)sio_hw->fifo_rd;
-                        
-                    }
-                    break;
+                pio1->intr = 0;
+                continue;
             }
-            continue;
+    
+            if (pio0->fstat &  (1u << (PIO_FSTAT_RXEMPTY_LSB + sm)))
+            {
+                pio_sm_get(pio0, 0);
+                continue;
+            }
 
-        pio0intr:
-            pio0->intr = 0;
-            continue;
-
-        pio1intr:
-            pio1->intr = 0;
-            continue;
-
-        pio0sm0fifo:
-            pio_sm_get(pio0, 0);
-            continue;
-
-
+            if (sio_hw->fifo_st & SIO_FIFO_ST_VLD_BITS)
+            {
+                (void)sio_hw->fifo_rd;
+            }
         }
     }
 }
-
-void SecondCorePollingLoopOuter()
-{
-    SecondCorePollingLoopCRef();
-}
-
 
 int main()
 {
@@ -217,23 +120,32 @@ int main()
 
         printf("SecondCorePollingLoop() address: %08X\n", (uint)SecondCorePollingLoop);
 
-        int value = SimpleFunc();
+    	//multicore_launch_core1(SecondCorePollingLoop);
+    	multicore_launch_core1(SecondCorePollingLoopCRef);
 
-        printf("Still alive %d\n", value);
+        set_sys_clock_khz(125000, true);
 
-//    	multicore_launch_core1(SecondCorePollingLoopOuter);
-    	//multicore_launch_core1(SecondCorePollingLoopCRef);
-
-
-
+        // This timing loop can measure a minimum of 8 cycles.
         while(1)
         {
-            uint startCount = loopCount;
-            sleep_ms(1000);
-            uint endCount = loopCount;
-            double cyclesPerLoop = (125000000.0) / (double)(endCount - startCount);
+            static const uint32_t loopCount = 10 * 1000 * 1000;
 
-            printf ("Cycles per loop: %.2f %08X to %08X\n", cyclesPerLoop, startCount, endCount);
+            uint64_t startTime = time_us_64();
+
+            for (int count = loopCount; count; count--)
+            {
+                while (!multicore_fifo_rvalid())
+                {
+                    tight_loop_contents();
+                }
+                (void)sio_hw->fifo_rd;
+            }
+
+            uint64_t endTime = time_us_64();
+
+            double cyclesPerLoop = (double)((endTime - startTime) * 125) / loopCount;
+
+            printf ("Cycles per loop: %.2f\n", cyclesPerLoop);
         }
     }
 
