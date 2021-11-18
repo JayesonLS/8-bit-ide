@@ -15,9 +15,7 @@
 
 #define _u(x) x
 
-#include "hardware/regs/addressmap.h"
-#include "hardware/regs/sio.h"
-#include "hardware/regs/pio.h"
+#include "XtBusDefs.h"
 
 .syntax unified
 .cpu cortex-m0plus
@@ -35,9 +33,9 @@
 @ Locals during the main loop
 @ r0 = scratch register
 @ r1 = pointer to loopCount variable
-@ r2 = fifo rxempty test mask
-@ r5 = pointer to pio0 base
-@ r6 = pointer to pio1 base
+@ r2 = write_control_register fifo rxempty test mask
+@ r5 = pointer to write pio base
+@ r6 = pointer to read pio base
 @ r7 = pointer to sio base
 
 .section .scratch_x.SecondCorePollingLoop, "ax"
@@ -50,9 +48,9 @@ SecondCorePollingLoop:
 0: @ Fucntion start.
     movs    r0, #0
     ldr     r1, =loopCount
-    ldr     r2, =(1 << (PIO_FSTAT_RXEMPTY_LSB + 0)) @ si0
-    ldr     r5, =PIO0_BASE 
-    ldr     r6, =PIO1_BASE
+    ldr     r2, =(1 << (PIO_FSTAT_RXEMPTY_LSB + WRITE_CONTROL_REGISTER_SM))
+    ldr     r5, =WRITE_PIO_BASE 
+    ldr     r6, =READ_PIO_BASE
     ldr     r7, =SIO_BASE
 
 1: @ Loop start.

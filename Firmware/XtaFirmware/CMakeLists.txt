@@ -1,7 +1,8 @@
 if (TARGET tinyusb_device)
         add_executable(XtaFirmware
                 XtaMain.cpp
-                PollingLoop.S
+                XtBus.cpp
+                XtBusAsm.S
                 )
 
         pico_generate_pio_header(XtaFirmware ${CMAKE_CURRENT_LIST_DIR}/XtBus.pio)
