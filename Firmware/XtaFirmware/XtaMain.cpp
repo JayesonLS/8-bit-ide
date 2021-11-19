@@ -158,17 +158,25 @@ int main()
 
     // RunTests();
 
+    // Allow time to connect USB serial monitor.
+    for (int i = 0; i < 6; i++)
+    {
+        printf("Waiting...\n");
+        sleep_ms(500);
+    }
+
+
     while(1)
     {
         if (pio_interrupt_get(pio0, 0))
         {
             pio_interrupt_clear(pio0, 0);
-            printf("Reset interrupt.\n");
+            printf("Write to reset IO address.\n");
         }
         if (pio_interrupt_get(pio0, 1))
         {
             pio_interrupt_clear(pio0, 1);
-            printf("Select interrupt.\n");
+            printf("Write to select IO address.\n");
         }
 
 //            if (pio1->irq & (PIO_INTR_SM0_BITS))
@@ -180,8 +188,11 @@ int main()
 
         if (!(pio0->fstat &  (1u << (PIO_FSTAT_RXEMPTY_LSB + WRITE_CONTROL_REGISTER_SM))))
         {
-            printf("data from pio1 sm0 %08X\n", pio_sm_get(pio0, 0));
-            continue;
+            uint32_t rawData = pio_sm_get(pio0, 0);
+            uint32_t address = 0x320 + ((rawData >> 10) & 0x3);
+            uint32_t data = rawData & 0xFF;
+
+            printf("Write to register %Xh, data: %02Xh\n", address, data);
         }
     }
 

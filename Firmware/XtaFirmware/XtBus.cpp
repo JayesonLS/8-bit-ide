@@ -41,7 +41,7 @@ void XtBus::Initialize()
         uint initialPc = writeControlRegisterProgramOffset + write_control_register_wrap_target; // Start at the wrap target.
         pio_sm_init(writePio, WRITE_CONTROL_REGISTER_SM, initialPc, &c);
 
-        // Force a -1 into Y so initial wait-for-write-end does not push a value into the fifo.
+        // Force 0xFFFFFFFF into Y so initial wait-for-write-end does not push a value into the fifo.
         pio_sm_exec(writePio, WRITE_CONTROL_REGISTER_SM, pio_encode_mov_not(pio_y, pio_null));
     }
 
