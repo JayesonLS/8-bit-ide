@@ -33,16 +33,16 @@ public:
     static const uint D5 = 10;
     static const uint D6 = 11;
     static const uint D7 = 12;
-    static const uint DATA_DIR = 13;
-    static const uint INV_DACK = 14;
-    static const uint INV_IOR = 15;
-    static const uint INV_IOW = 16;
+    static const uint INV_DACK = 13;
+    static const uint INV_IOW = 14;
+    static const uint A0 = 15;
+    static const uint A1 = 16;
     static const uint INV_CS = 17;
     static const uint AEN = 18;
-    static const uint A1 = 19;
-    static const uint A2 = 20;
-    static const uint INV_DRQ = 21;
-    static const uint INV_IRQ = 22;
+    static const uint INV_IOR = 19;
+    static const uint INV_DRQ = 20;
+    static const uint INV_IRQ = 21;
+    static const uint DATA_DIR = 22;
 
     // Pico specific GPIO assignments.
     static const uint PICO_PS_MODE = 23; // We always want 0 for PFM = higher noise and efficiency.
@@ -58,12 +58,11 @@ public:
     
     static const uint PICO_VSYS_SENSE = 29;   // Also ADC3. Intended to be read with the ADC.
 
-
     // Pin groupings.
     static const uint INITIAL_INPUTS =
         (1 << SPI_RX) | (1 << SD0_CS) | (1 << SPI_SCK) | (1 << SPI_TX) | (1 << SD1_CS) | 
         (1 << D0) | (1 << D1) | (1 << D2) | (1 << D3) | (1 << D4) | (1 << D5) | (1 << D6) | (1 << D7) |
-        (1 << INV_DACK) | (1 << INV_IOR) | (1 << INV_IOW) | (1 << INV_CS) | (1 << AEN) || (1 << A1) | (1 << A2); 
+        (1 << INV_DACK) | (1 << INV_IOR) | (1 << INV_IOW) | (1 << INV_CS) | (1 << AEN) || (1 << A0) | (1 << A1); 
     static const uint INITIAL_OUTPUTS_LOW = (1 << DATA_DIR);
     static const uint INITIAL_OUTPUTS_HIGH = (1 << INV_DRQ) | (1 << INV_IRQ) | (1 << PICO_LED);
     static const uint INITIAL_OUTPUTS = INITIAL_OUTPUTS_LOW | INITIAL_OUTPUTS_HIGH;
