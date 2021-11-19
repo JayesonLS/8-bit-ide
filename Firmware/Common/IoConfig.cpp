@@ -41,11 +41,18 @@
     // It also clears all of the GPIOx_CONTROL register
     // (signal inversions, etc.) except for setting the
     // function to SIO. 
-    for (uint pinIndex = 0, mask = INITIAL_INPUTS_AND_OUTPUTS; pinIndex < 32; pinIndex++, mask >>= 1)
+    for (uint pinIndex = 0; pinIndex < 32; pinIndex++)
     {
-        if (mask & 0x01)
+        if (INITIAL_INPUTS_AND_OUTPUTS & (1 << pinIndex))
         {
             gpio_set_function(pinIndex, GPIO_FUNC_SIO);
+        }
+
+        // Disable the pullups resistors for pins with external pullups.
+        // No need to load the pin any further.
+        if (EXTERNAL_PULL_PINS & (1 << pinIndex))
+        {
+            gpio_disable_pulls(pinIndex);            
         }
     }
 }
