@@ -20,11 +20,9 @@
 #include <LedController.h>
 #include <UnitTest.h>
 #include <UnitDemo.h>
+#include "XtBus.h"
 
-
-#include <pico/multicore.h>
-#include "hardware/pio.h"
-
+static const uint32_t SYSTEM_CLOCK_KHZ = 125000;
 
 static void Intialize()
 {
@@ -34,8 +32,14 @@ static void Intialize()
 
     stdio_init_all();
 
+    // Ensure we are using a consistent system clock even if SDK or bootloader changes the
+    // default.
+    set_sys_clock_khz(SYSTEM_CLOCK_KHZ, true); 
+
     PeripheralController::instance.Initialize();
     LedController::instance.Initialize();
+
+    XtBus::instance.Initialize();
 }
 
 static void RunTests()
@@ -50,6 +54,8 @@ static void RunTests()
 }
 
 
+#include <pico/multicore.h>
+#include "hardware/pio.h"
 #include "hardware/regs/pio.h"
 #include "hardware/regs/addressmap.h"
 
@@ -122,8 +128,6 @@ int main()
 
     	multicore_launch_core1(SecondCorePollingLoop);
     	//multicore_launch_core1(SecondCorePollingLoopCRef);
-
-        set_sys_clock_khz(125000, true);
 
         // This timing loop can measure a minimum of 8 cycles.
         while(1)

@@ -18,6 +18,8 @@
 #include <hardware/structs/bus_ctrl.h>
 #include "XtBus.pio.h"
 
+/*static*/ XtBus XtBus::instance;
+
 XtBus::XtBus()
 {
     if ((void *)writePio != (void *)WRITE_PIO_BASE ||
@@ -25,4 +27,19 @@ XtBus::XtBus()
     {
         panic("Inconsistent PIO assignments.");
     }
+}
+
+void XtBus::Initialize()
+{
+    // Set up write_control_register program.
+    {
+        writeControlRegisterProgramOffset = pio_add_program(writePio, &write_control_register_program);
+        pio_sm_config c = write_control_register_program_get_default_config(writeControlRegisterProgramOffset);
+        sm_config_set_in_pins(&c, FIRST_WRITE_DECODE_PIN);
+        sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_RX);
+        pio_sm_init(writePio, WRITE_CONTROL_REGISTER_SM, writeControlRegisterProgramOffset, &c);
+    }
+
+    // Start state machines.
+    pio_sm_set_enabled(writePio, WRITE_CONTROL_REGISTER_SM, true);
 }
