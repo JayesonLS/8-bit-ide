@@ -37,7 +37,12 @@ void XtBus::Initialize()
         pio_sm_config c = write_control_register_program_get_default_config(writeControlRegisterProgramOffset);
         sm_config_set_in_pins(&c, FIRST_WRITE_DECODE_PIN);
         sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_RX);
-        pio_sm_init(writePio, WRITE_CONTROL_REGISTER_SM, writeControlRegisterProgramOffset, &c);
+        sm_config_set_jmp_pin(&c, IoConfig::INV_IOW);
+        uint initialPc = writeControlRegisterProgramOffset + write_control_register_wrap_target; // Start at the wrap target.
+        pio_sm_init(writePio, WRITE_CONTROL_REGISTER_SM, initialPc, &c);
+
+        // Force a -1 into Y so initial wait-for-write-end does not push a value into the fifo.
+        pio_sm_exec(writePio, WRITE_CONTROL_REGISTER_SM, pio_encode_mov_not(pio_y, pio_null));
     }
 
     // Start state machines.

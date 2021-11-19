@@ -57,12 +57,12 @@ SecondCorePollingLoop:
     @ Write to the fifo so the other CPU can count the loops.
     str     r0, [r7, SIO_FIFO_WR_OFFSET]
 
-    @ Check pio0 intr
+    @ Check pio0 interrupt flags
     ldr     r0, [r5, PIO_IRQ_OFFSET]
     lsls    r0, r0, #30
     bne.n   2f
 
-    @ Check pio1 intr
+    @ Check pio1 interrupt flags
     ldr     r0, [r6, PIO_IRQ_OFFSET]
     lsls    r0, r0, #31
     bne.n   3f

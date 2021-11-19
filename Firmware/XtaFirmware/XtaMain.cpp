@@ -109,11 +109,8 @@ extern "C"
     }
 }
 
-int main()
+void MulticoreExperiment()
 {
-    Intialize();
-
-    // RunTests();
 
     // Test second core.
     {
@@ -152,6 +149,42 @@ int main()
             printf ("Cycles per loop: %.2f\n", cyclesPerLoop);
         }
     }
+
+}
+
+int main()
+{
+    Intialize();
+
+    // RunTests();
+
+    while(1)
+    {
+        if (pio_interrupt_get(pio0, 0))
+        {
+            pio_interrupt_clear(pio0, 0);
+            printf("Reset interrupt.\n");
+        }
+        if (pio_interrupt_get(pio0, 1))
+        {
+            pio_interrupt_clear(pio0, 1);
+            printf("Select interrupt.\n");
+        }
+
+//            if (pio1->irq & (PIO_INTR_SM0_BITS))
+//            {
+//                pio1->irq = 0;
+//                printf("pio1 intr.\n");
+//                continue;
+//            }
+
+        if (!(pio0->fstat &  (1u << (PIO_FSTAT_RXEMPTY_LSB + WRITE_CONTROL_REGISTER_SM))))
+        {
+            printf("data from pio1 sm0 %08X\n", pio_sm_get(pio0, 0));
+            continue;
+        }
+    }
+
 
     return 0;
 }
