@@ -116,9 +116,10 @@ wait_for_write_start:
 ; This approach to implementation requires the CPU to very quickly update
 ; the read value for register 1 to indicate busy. Should probably dedicate a CPU to this.
 ; TODO: We must start this program at the "wait 1 pin 10" line (one before the wrap target)
-; 15 instructions.
 ;
 ; Program start point is the wrap target. Y must initialized to something non-zero.
+;
+; 15 instructions.
 ;-----------------------------------------------------------------------------------------
 .program write_control_register
 
@@ -192,8 +193,10 @@ wait_for_read_start:
 ; writing it anyway to explore.
 ; Register 1 is the flags register, 2 is the configuration register.
 ;
-; Note: We must constantly pull from the FIFO to keep the
-; flags register value up to date.
+; Program constantly pull from the FIFO to keep the status register value up to date.
+;
+; Program start point is one instructinon past the wrap target.
+; X must initialized to the initial register read values (0 for example).
 ;
 ; 13 instructions. Up to 13 cycle delay (+ external delays) to set up read.
 ; See top of file for a discussion on max delays. 
@@ -208,6 +211,8 @@ read_321:
     mov isr, ~osr                   ; Copy with invert ~DRQ and ~IRQ still sitting in OSR (TODO: This inversion may not be necessary here - looks like it can be done with GPIOx_CTRL)
 ;NEW_BOARD    in x, 4	side 1					; Shift in the 4 status bits from X, reverse tranceiver direction (also signals pindir change)
     in x, 4	side 0 ;NEW_BOARD
+;TODO: Remove:
+    irq nowait 1				    ; Signal to CPU that we had a config register read so CPU can update the serial-ID bit in bit 7 of the config register
 
 .wrap_target
     mov pins, isr					; (Setting tranceiver direction will result in other program setting pindirs)
@@ -228,10 +233,10 @@ wait_for_read_start:
 not_321:
     jmp y-- wait_for_read_start     ; Jump on !0b00010
 
-read_322:
+read_322:  
 ;NEW_BOARD    in  x, 16 side 1                ; Shift in data, skipping register_321's bits. Also reverse tranceiver direction/signals pindir change.
     in  x, 16 side 0 ;NEW_BOARD
-    irq nowait 2				    ; Signal to CPU that we had a config register read so CPU can update the serial-ID bit in bit 7 of the config register
+    irq nowait 0				    ; Signal to CPU that we had a config register read so CPU can update the serial-ID bit in bit 7 of the config register
 .wrap    
 
 ;-----------------------------------------------------------------------------------------
@@ -247,8 +252,10 @@ read_322:
 .side_set 1 opt				        ; The 3 bits are pindirs for D6-D8
 ;NEW_BOARD    mov osr, x side 0               ; Get 0x00FF from X and restore data_dir to low 
 ;NEW_BOARD    wait 1 pin 7    				; Wait on data_dir to go high
+    irq nowait 2				    ; Signal to CPU that we had a config register read so CPU can update the serial-ID bit in bit 7 of the config register
     mov osr, x side 1 ; NEW_BOARD
     wait 0 pin 7 ; NEW_BOARD
+    irq nowait 3				    ; Signal to CPU that we had a config register read so CPU can update the serial-ID bit in bit 7 of the config register
     out pindirs, 8                  ; Pindirs set to out for all 8 data bits. 74LVC245 transceiver should have reversed by now.
     wait 1 pin 4                    ; Wait for ~IOR high
     out pindirs, 8      			; Restore all pindirs to inputs 

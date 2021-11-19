@@ -39,6 +39,14 @@ static void Intialize()
     PeripheralController::instance.Initialize();
     LedController::instance.Initialize();
 
+    // Allow time to connect USB serial monitor.
+    for (int i = 0; i < 6; i++)
+    {
+        printf("Waiting...\n");
+        sleep_ms(500);
+    }
+
+
     XtBus::instance.Initialize();
 }
 
@@ -158,14 +166,6 @@ int main()
 
     // RunTests();
 
-    // Allow time to connect USB serial monitor.
-    for (int i = 0; i < 6; i++)
-    {
-        printf("Waiting...\n");
-        sleep_ms(500);
-    }
-
-
     while(1)
     {
         if (pio_interrupt_get(pio0, 0))
@@ -178,6 +178,31 @@ int main()
             pio_interrupt_clear(pio0, 1);
             printf("Write to select IO address.\n");
         }
+
+        if (pio_interrupt_get(pio1, 0))
+        {
+            pio_interrupt_clear(pio1, 0);
+            printf("Read from 322.\n");
+        }
+
+
+        if (pio_interrupt_get(pio1, 1))
+        {
+            pio_interrupt_clear(pio1, 1);
+            printf("Read from 321.\n");
+        }        
+
+        if (pio_interrupt_get(pio1, 2))
+        {
+            pio_interrupt_clear(pio1, 2);
+            printf("Read irq 2.\n");
+        }        
+
+        if (pio_interrupt_get(pio1, 3))
+        {
+            pio_interrupt_clear(pio1, 3);
+            printf("Read irq 3.\n");
+        }                
 
 //            if (pio1->irq & (PIO_INTR_SM0_BITS))
 //            {

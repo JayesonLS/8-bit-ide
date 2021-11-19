@@ -31,6 +31,8 @@ XtBus::XtBus()
 
 void XtBus::Initialize()
 {
+    static_assert(FIRST_BUS_PIN <= IoConfig::D0 && IoConfig::DATA_DIR > IoConfig::D7 && IoConfig::D7 > IoConfig::D0);
+
     // Set up write_control_register program.
     {
         writeControlRegisterProgramOffset = pio_add_program(writePio, &write_control_register_program);
@@ -46,15 +48,28 @@ void XtBus::Initialize()
     }
 
     // Set up read_control_register program.
+    {
+        readControlRegisterProgramOffset = pio_add_program(readPio, &read_control_register_program);
+        pio_sm_config c = read_control_register_program_get_default_config(readControlRegisterProgramOffset);
+        sm_config_set_in_pins(&c, FIRST_READ_DECODE_PIN);
+        sm_config_set_out_pins(&c, FIRST_BUS_PIN, IoConfig::DATA_DIR - FIRST_BUS_PIN + 1);
+        sm_config_set_sideset_pins(&c, IoConfig::DATA_DIR);
+        sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_TX);
+        sm_config_set_jmp_pin(&c, IoConfig::INV_IOR);
+        uint initialPc = readControlRegisterProgramOffset + read_control_register_wrap_target + 1; // Start 1 instruction past the wrap target.
+        pio_sm_init(readPio, READ_CONTROL_REGISTER_SM, initialPc, &c);
 
-
-
+        // Load 0 into X (the initial register values).
+        pio_sm_exec(readPio, READ_CONTROL_REGISTER_SM, pio_encode_mov(pio_x, pio_null));
+    }
 
     // Set up set_pindirs program.
     {
         setupPindirsProgramOffset = pio_add_program(readPio, &set_pindirs_program);
         pio_sm_config c = set_pindirs_program_get_default_config(setupPindirsProgramOffset);
         sm_config_set_in_pins(&c, FIRST_READ_DECODE_PIN);
+        sm_config_set_out_pins(&c, FIRST_BUS_PIN, IoConfig::DATA_DIR - FIRST_BUS_PIN + 1);
+        sm_config_set_sideset_pins(&c, IoConfig::DATA_DIR);
         sm_config_set_jmp_pin(&c, IoConfig::INV_IOR);
         uint initialPc = setupPindirsProgramOffset; // Start of the program is fine.
         pio_sm_init(readPio, SET_PINDIRS_SM, initialPc, &c);
@@ -85,4 +100,7 @@ void XtBus::Initialize()
     pio_sm_set_enabled(readPio, SET_PINDIRS_SM, true);
     pio_sm_set_enabled(readPio, READ_CONTROL_REGISTER_SM, true);
     pio_sm_set_enabled(writePio, WRITE_CONTROL_REGISTER_SM, true);
+
+    // TEST CODE:
+    pio_sm_put_blocking(readPio, READ_CONTROL_REGISTER_SM, 0x89ABCDEF);
 }
