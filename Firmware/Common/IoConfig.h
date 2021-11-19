@@ -74,6 +74,10 @@ public:
     static const uint INITIAL_OUTPUTS = INITIAL_OUTPUTS_LOW | INITIAL_OUTPUTS_HIGH;
     static const uint INITIAL_INPUTS_AND_OUTPUTS = INITIAL_INPUTS | INITIAL_OUTPUTS;
 
+    static const uint READ_DRIVE_PINS =
+        (1 << D0) | (1 << D1) | (1 << D2) | (1 << D3) | (1 << D4) | (1 << D5) | (1 << D6) | (1 << D7) |
+        (1 << DATA_DIR);
+
     // Method that should be called very early in startup process
     // to configure initial IO pin state. 
     static void PreInitialzieIo();

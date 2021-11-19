@@ -25,4 +25,7 @@
 
 #define WRITE_CONTROL_REGISTER_SM 0
 
+#define READ_CONTROL_REGISTER_SM 0
+#define SET_PINDIRS_SM 1
+
 #endif // XT_BUS_DEFS_H

@@ -38,5 +38,7 @@ private:
     const PIO writePio = pio0;
     const PIO readPio = pio1;
 
-    uint writeControlRegisterProgramOffset = 0xBADA; 
+    uint writeControlRegisterProgramOffset = 0xBADA;
+    uint readControlRegisterProgramOffset = 0xBADA;
+    uint setupPindirsProgramOffset = 0xBADA;
 };

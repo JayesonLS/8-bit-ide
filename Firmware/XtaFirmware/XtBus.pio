@@ -206,7 +206,8 @@ not_320:
 
 read_321:
     mov isr, ~osr                   ; Copy with invert ~DRQ and ~IRQ still sitting in OSR (TODO: This inversion may not be necessary here - looks like it can be done with GPIOx_CTRL)
-    in x, 4	side 1					; Shift in the 4 status bits from X, reverse tranceiver direction (also signals pindir change)
+;NEW_BOARD    in x, 4	side 1					; Shift in the 4 status bits from X, reverse tranceiver direction (also signals pindir change)
+    in x, 4	side 0 ;NEW_BOARD
 
 .wrap_target
     mov pins, isr					; (Setting tranceiver direction will result in other program setting pindirs)
@@ -228,7 +229,8 @@ not_321:
     jmp y-- wait_for_read_start     ; Jump on !0b00010
 
 read_322:
-    in  x, 16 side 1                ; Shift in data, skipping register_321's bits. Also reverse tranceiver direction/signals pindir change.
+;NEW_BOARD    in  x, 16 side 1                ; Shift in data, skipping register_321's bits. Also reverse tranceiver direction/signals pindir change.
+    in  x, 16 side 0 ;NEW_BOARD
     irq nowait 2				    ; Signal to CPU that we had a config register read so CPU can update the serial-ID bit in bit 7 of the config register
 .wrap    
 
@@ -236,14 +238,17 @@ read_322:
 ; Waits for data_dir to go high and then sets pindirs accordingly.
 ; Waits for ~IOR to go high, and then restores pindirs and then data_dir
 ;
+; Program start point is the start of the program.
 ; X must be initalized to 0x00FF.
 ;
 ; 5 instructions
 ;-----------------------------------------------------------------------------------------
 .program set_pindirs
 .side_set 1 opt				        ; The 3 bits are pindirs for D6-D8
-    mov osr, x side 0               ; Get 0x00FF from X and restore data_dir to low 
-    wait 1 pin 0    				; Wait on data_dir to go high
+;NEW_BOARD    mov osr, x side 0               ; Get 0x00FF from X and restore data_dir to low 
+;NEW_BOARD    wait 1 pin 7    				; Wait on data_dir to go high
+    mov osr, x side 1 ; NEW_BOARD
+    wait 0 pin 7 ; NEW_BOARD
     out pindirs, 8                  ; Pindirs set to out for all 8 data bits. 74LVC245 transceiver should have reversed by now.
-    wait 1 pin 3                    ; Wait for ~IOR high
+    wait 1 pin 4                    ; Wait for ~IOR high
     out pindirs, 8      			; Restore all pindirs to inputs 
