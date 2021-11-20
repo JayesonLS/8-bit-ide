@@ -96,6 +96,12 @@ void XtBus::Initialize()
         }
     }
 
+    // We need DATA_DIR to have fast transition speeds to be sure it completes transition within a single clock 
+    // cycle. With this setting, the transiton completes in 
+    gpio_set_drive_strength(IoConfig::DATA_DIR, GPIO_DRIVE_STRENGTH_12MA);    
+	// We also want it to bypass the 2-flip-flip synchonizer to avoid the extra 2 cycle input latency.
+    readPio->input_sync_bypass |= (1 << IoConfig::DATA_DIR);
+	
     // Start state machines.
     pio_sm_set_enabled(readPio, SET_PINDIRS_SM, true);
     pio_sm_set_enabled(readPio, READ_CONTROL_REGISTER_SM, true);
