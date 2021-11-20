@@ -18,6 +18,10 @@
 #include <hardware/structs/bus_ctrl.h>
 #include "XtBus.pio.h"
 
+//TODO: Remove:
+#include <stdio.h>
+
+
 /*static*/ XtBus XtBus::instance;
 
 XtBus::XtBus()
@@ -67,10 +71,13 @@ void XtBus::Initialize()
     {
         setupPindirsProgramOffset = pio_add_program(readPio, &set_pindirs_program);
         pio_sm_config c = set_pindirs_program_get_default_config(setupPindirsProgramOffset);
-        sm_config_set_in_pins(&c, FIRST_READ_DECODE_PIN);
+        //sm_config_set_in_pins(&c, FIRST_READ_DECODE_PIN);
+sm_config_set_in_pins(&c, IoConfig::DATA_DIR);
+sm_config_set_set_pins(&c, IoConfig::DATA_DIR, 1);
+
         sm_config_set_out_pins(&c, FIRST_BUS_PIN, IoConfig::DATA_DIR - FIRST_BUS_PIN + 1);
         sm_config_set_sideset_pins(&c, IoConfig::DATA_DIR);
-        sm_config_set_jmp_pin(&c, IoConfig::INV_IOR);
+        sm_config_set_jmp_pin(&c, IoConfig::DATA_DIR);
         uint initialPc = setupPindirsProgramOffset; // Start of the program is fine.
         pio_sm_init(readPio, SET_PINDIRS_SM, initialPc, &c);
 
@@ -83,7 +90,8 @@ void XtBus::Initialize()
 #ifdef NEW_BOARD
     pio_sm_set_pins_with_mask(readPio, SET_PINDIRS_SM, 0, (1 << IoConfig::DATA_DIR));
 #else
-    pio_sm_set_pins_with_mask(readPio, SET_PINDIRS_SM, (1 << IoConfig::DATA_DIR), (1 << IoConfig::DATA_DIR));
+//    pio_sm_set_pins_with_mask(readPio, SET_PINDIRS_SM, (1 << IoConfig::DATA_DIR), (1 << IoConfig::DATA_DIR));
+    pio_sm_set_pins_with_mask(readPio, SET_PINDIRS_SM, 0, (1 << IoConfig::DATA_DIR));
 #endif
     pio_sm_set_pindirs_with_mask(readPio, SET_PINDIRS_SM, (1 << IoConfig::DATA_DIR), (1 << IoConfig::DATA_DIR)); 
 
@@ -92,7 +100,16 @@ void XtBus::Initialize()
     {
         if (IoConfig::READ_DRIVE_PINS & (1 << pinIndex))
         {
+            // We need to be able to set these and their pindirs from PIO.
             pio_gpio_init(readPio, pinIndex);
+            printf("Initing %d\n", pinIndex);
+
+            // We want high slew rates also. Slow slew rates/drive strengh can take a few cycles to transition.
+            //gpio_set_slew_rate(pinIndex, GPIO_SLEW_RATE_FAST);
+            gpio_set_drive_strength(pinIndex, GPIO_DRIVE_STRENGTH_12MA);
+            gpio_set_slew_rate(pinIndex, GPIO_SLEW_RATE_SLOW);
+            //gpio_set_drive_strength(pinIndex, GPIO_DRIVE_STRENGTH_2MA);
+
         }
     }
 
@@ -103,4 +120,5 @@ void XtBus::Initialize()
 
     // TEST CODE:
     pio_sm_put_blocking(readPio, READ_CONTROL_REGISTER_SM, 0x89ABCDEF);
+    readPio->input_sync_bypass |= (1 << IoConfig::DATA_DIR);
 }

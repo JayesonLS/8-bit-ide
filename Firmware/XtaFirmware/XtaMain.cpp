@@ -15,6 +15,7 @@
 
 #include <stdio.h>
 #include <pico/stdlib.h>
+#include <hardware/vreg.h>
 #include <IoConfig.h>
 #include <PeripheralController.h>
 #include <LedController.h>
@@ -165,6 +166,24 @@ int main()
     Intialize();
 
     // RunTests();
+    vreg_set_voltage(VREG_VOLTAGE_1_15);
+    for (int i = 100*1000; i <= 133*1000*2; i++)
+    {
+        if (set_sys_clock_khz(i, false))
+        {
+            printf("Freq %d\n", i);
+            sleep_ms(100);
+
+            if (pio_interrupt_get(pio1, 3))
+            {
+                pio_interrupt_clear(pio1, 3);
+            }                   
+            else
+            {
+                printf("dead,");
+            }
+        }
+    }
 
     while(1)
     {
@@ -224,3 +243,68 @@ int main()
 
     return 0;
 }
+
+
+
+/*
+High slew, high drive current
+
+Freq 176000
+Freq 177000
+Freq 177600
+dead,Freq 178000
+dead,Freq 178500
+dead,Freq 180000
+dead,Freq 181500
+dead,Freq 182000
+
+
+Low slew, low drive current
+Freq 148500
+Freq 148800
+Freq 150000
+Freq 151200
+Freq 151500
+dead,Freq 152000
+dead,Freq 152400
+dead,Freq 153000
+dead,Freq 153600
+dead,Freq 154000
+dead,Freq 154500
+dead,Freq 154800
+dead,Freq 156000
+dead,Freq 157200
+
+
+Low slew, low drive current, external pullup and LVC. (Actually happens at about half this clock)
+Freq 216000
+Freq 218000
+Freq 218400
+Freq 219000
+Freq 220000
+Freq 220800
+dead,Freq 222000
+dead,Freq 223200
+dead,Freq 224000
+dead,Freq 225000
+dead,Freq 225600
+
+High slew, high drive current, external pullup and LVC.
+
+Freq 172500
+Freq 172800
+Freq 174000
+Freq 175200
+Freq 175500
+dead,Freq 176000
+dead,Freq 177000
+dead,Freq 177600
+dead,Freq 178000
+dead,Freq 178500
+dead,Freq 180000
+
+Low slew, high drive current, external pullup and LCV.
+
+gpio_set_drive_strength(pinIndex, GPIO_DRIVE_STRENGTH_12MA);
+
+*/

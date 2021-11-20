@@ -248,14 +248,64 @@ read_322:
 ;
 ; 5 instructions
 ;-----------------------------------------------------------------------------------------
-.program set_pindirs
-.side_set 1 opt				        ; The 3 bits are pindirs for D6-D8
+.program set_pindirs_alt
+.side_set 1 opt				        ; The 1 bit is DATA_DIR
 ;NEW_BOARD    mov osr, x side 0               ; Get 0x00FF from X and restore data_dir to low 
 ;NEW_BOARD    wait 1 pin 7    				; Wait on data_dir to go high
     irq nowait 2				    ; Signal to CPU that we had a config register read so CPU can update the serial-ID bit in bit 7 of the config register
     mov osr, x side 1 ; NEW_BOARD
+    nop
+    nop
     wait 0 pin 7 ; NEW_BOARD
     irq nowait 3				    ; Signal to CPU that we had a config register read so CPU can update the serial-ID bit in bit 7 of the config register
     out pindirs, 8                  ; Pindirs set to out for all 8 data bits. 74LVC245 transceiver should have reversed by now.
-    wait 1 pin 4                    ; Wait for ~IOR high
+;    wait 1 pin 4                    ; Wait for ~IOR high
     out pindirs, 8      			; Restore all pindirs to inputs 
+
+
+.program set_pindirs_0
+.side_set 1 opt				     
+    nop side 0
+    nop side 1
+
+.program set_pindirs_1
+.side_set 1 opt				  
+    nop side 0
+    wait 0 pin 0
+    nop side 1
+    wait 1 pin 0
+
+.program set_pindirs_2
+.side_set 1 opt				  
+loop:
+    nop side 0
+wait_for_0:
+    jmp pin wait_for_0
+    nop side 1
+.wrap_target
+    jmp pin loop
+.wrap
+
+.program set_pindirs
+.side_set 1 opt				  
+    nop side 0
+    //wait 0 gpio 22
+    wait 0 pin 0
+    irq 3
+    nop side 1
+    //wait 1 gpio 22
+    wait 1 pin 0
+
+.program set_pindirs_4
+.side_set 1 opt				  
+    irq 6 side 0
+    wait 1 irq 6
+    irq 7 side 1
+    wait 1 irq 7
+
+.program set_pindirs_5
+.side_set 1 opt				  
+    set pins 0
+    wait 0 gpio 22
+    set pins 1
+    wait 1 gpio 22
