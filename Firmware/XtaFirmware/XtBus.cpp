@@ -100,8 +100,19 @@ void XtBus::Initialize()
     // cycle. With this setting, the transiton completes in 
     gpio_set_drive_strength(IoConfig::DATA_DIR, GPIO_DRIVE_STRENGTH_12MA);    
 	// We also want it to bypass the 2-flip-flip synchonizer to avoid the extra 2 cycle input latency.
+    // Don't do this without also maxing the drive strength. 
     readPio->input_sync_bypass |= (1 << IoConfig::DATA_DIR);
-	
+
+    // TODO: Move this to IoConfig as it will be common with DBA8.
+    {
+        // Invert the input state of INV_IRQ and INV_DRQ.  
+        gpio_set_inover(IoConfig::INV_DRQ, GPIO_OVERRIDE_INVERT);
+        gpio_set_inover(IoConfig::INV_IRQ, GPIO_OVERRIDE_INVERT);
+
+        // TODO: Shoudl also flip the drive state to match to avoid confusion.
+        // Must be done carefully to avoid accidentally driving the output.
+    }
+    
     // Start state machines.
     pio_sm_set_enabled(readPio, SET_PINDIRS_SM, true);
     pio_sm_set_enabled(readPio, READ_CONTROL_REGISTER_SM, true);

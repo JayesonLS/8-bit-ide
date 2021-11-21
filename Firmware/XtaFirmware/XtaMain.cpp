@@ -32,9 +32,11 @@ static void Intialize()
 
     stdio_init_all();
 
-    // Ensure we are using a consistent system clock even if SDK or bootloader changes the
-    // default.
+    // Ensure we are using a consistent system clock even if SDK or 
+    // bootloader changes the default.
     set_sys_clock_khz(SYSTEM_CLOCK_KHZ, true); 
+
+    IoConfig::FinishInitializeIo();
 
     PeripheralController::instance.Initialize();
     LedController::instance.Initialize();
@@ -45,7 +47,6 @@ static void Intialize()
         printf("Waiting...\n");
         sleep_ms(500);
     }
-
 
     XtBus::instance.Initialize();
 }

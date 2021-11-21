@@ -81,4 +81,6 @@ public:
     // Method that should be called very early in startup process
     // to configure initial IO pin state. 
     static void PreInitialzieIo();
+
+    static void FinishInitializeIo();
 };

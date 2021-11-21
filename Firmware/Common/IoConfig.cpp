@@ -56,3 +56,9 @@
         }
     }
 }
+
+/*static*/ void IoConfig::FinishInitializeIo()
+{
+    // TODO: Move IRQ and DRQ inversion from XtBus to here.
+
+}
