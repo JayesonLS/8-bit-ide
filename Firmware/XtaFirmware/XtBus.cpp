@@ -54,7 +54,7 @@ void XtBus::Initialize()
         sm_config_set_in_pins(&c, FIRST_READ_DECODE_PIN);
         sm_config_set_out_pins(&c, IoConfig::D0, 8);
         sm_config_set_sideset_pins(&c, IoConfig::DATA_DIR);
-        sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_TX);
+        //sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_TX);
         sm_config_set_jmp_pin(&c, IoConfig::INV_IOR);
         uint initialPc = readControlRegisterProgramOffset + read_control_register_wrap_target + 1; // Start 1 instruction past the wrap target.
         pio_sm_init(readPio, READ_CONTROL_REGISTER_SM, initialPc, &c);
@@ -109,10 +109,9 @@ void XtBus::Initialize()
         gpio_set_inover(IoConfig::INV_DRQ, GPIO_OVERRIDE_INVERT);
         gpio_set_inover(IoConfig::INV_IRQ, GPIO_OVERRIDE_INVERT);
 
-        // TODO: Shoudl also flip the drive state to match to avoid confusion.
+        // TODO: Should also flip the drive state to match to avoid confusion.
         // Must be done carefully to avoid accidentally driving the output.
     }
-    
 
     // Start state machines.
     pio_sm_set_enabled(readPio, SET_PINDIRS_SM, true);
@@ -120,5 +119,5 @@ void XtBus::Initialize()
     pio_sm_set_enabled(writePio, WRITE_CONTROL_REGISTER_SM, true);
 
     // TEST CODE:
-    pio_sm_put_blocking(readPio, READ_CONTROL_REGISTER_SM, 0x89ABCDEF);
+    pio_sm_put_blocking(readPio, READ_CONTROL_REGISTER_SM, ~0x89ABCDEF);
 }
