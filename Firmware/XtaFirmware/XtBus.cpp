@@ -52,7 +52,7 @@ void XtBus::Initialize()
         readControlRegisterProgramOffset = pio_add_program(readPio, &read_control_register_program);
         pio_sm_config c = read_control_register_program_get_default_config(readControlRegisterProgramOffset);
         sm_config_set_in_pins(&c, FIRST_READ_DECODE_PIN);
-        sm_config_set_out_pins(&c, FIRST_BUS_PIN, IoConfig::DATA_DIR - FIRST_BUS_PIN + 1);
+        sm_config_set_out_pins(&c, IoConfig::D0, 8);
         sm_config_set_sideset_pins(&c, IoConfig::DATA_DIR);
         sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_TX);
         sm_config_set_jmp_pin(&c, IoConfig::INV_IOR);
@@ -68,7 +68,7 @@ void XtBus::Initialize()
         setupPindirsProgramOffset = pio_add_program(readPio, &set_pindirs_program);
         pio_sm_config c = set_pindirs_program_get_default_config(setupPindirsProgramOffset);
         sm_config_set_in_pins(&c, FIRST_READ_DECODE_PIN);
-        sm_config_set_out_pins(&c, FIRST_BUS_PIN, IoConfig::DATA_DIR - FIRST_BUS_PIN + 1);
+        sm_config_set_out_pins(&c, IoConfig::D0, 8);
         sm_config_set_sideset_pins(&c, IoConfig::DATA_DIR);
         sm_config_set_jmp_pin(&c, IoConfig::INV_IOR);
         uint initialPc = setupPindirsProgramOffset; // Start of the program is fine.
@@ -97,7 +97,7 @@ void XtBus::Initialize()
     }
 
     // We need DATA_DIR to have fast transition speeds to be sure it completes transition within a single clock 
-    // cycle. With this setting, the transiton completes in 
+    // cycle. With this setting, the transiton completes in about 70% of a clock cycle.
     gpio_set_drive_strength(IoConfig::DATA_DIR, GPIO_DRIVE_STRENGTH_12MA);    
 	// We also want it to bypass the 2-flip-flip synchonizer to avoid the extra 2 cycle input latency.
     // Don't do this without also maxing the drive strength. 
@@ -113,6 +113,7 @@ void XtBus::Initialize()
         // Must be done carefully to avoid accidentally driving the output.
     }
     
+
     // Start state machines.
     pio_sm_set_enabled(readPio, SET_PINDIRS_SM, true);
     pio_sm_set_enabled(readPio, READ_CONTROL_REGISTER_SM, true);
