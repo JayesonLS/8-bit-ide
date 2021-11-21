@@ -196,13 +196,13 @@ int main()
         if (pio_interrupt_get(pio1, 2))
         {
             pio_interrupt_clear(pio1, 2);
-            printf("Read irq 2.\n");
+            printf("set_pindirs: Read ended.\n");
         }        
 
         if (pio_interrupt_get(pio1, 3))
         {
             pio_interrupt_clear(pio1, 3);
-            printf("Read irq 3.\n");
+            printf("set_pindirs: Read active.\n");
         }                
 
 //            if (pio1->irq & (PIO_INTR_SM0_BITS))
@@ -220,6 +220,13 @@ int main()
 
             printf("Write to register %Xh, data: %02Xh\n", address, data);
         }
+
+        if (!(pio1->fstat &  (1u << (PIO_FSTAT_RXEMPTY_LSB + WRITE_CONTROL_REGISTER_SM))))
+        {
+            uint32_t rawData = pio_sm_get(pio1, 0);
+
+            printf("Read returned %08Xh\n", rawData);
+        }        
     }
 
 
