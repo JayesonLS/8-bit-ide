@@ -54,12 +54,12 @@ void XtBus::Initialize()
         sm_config_set_in_pins(&c, FIRST_READ_DECODE_PIN);
         sm_config_set_out_pins(&c, IoConfig::D0, 8);
         sm_config_set_sideset_pins(&c, IoConfig::DATA_DIR);
-        //sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_TX);
-        sm_config_set_jmp_pin(&c, IoConfig::INV_IOR);
+        sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_TX);
+        sm_config_set_jmp_pin(&c, IoConfig::INV_IOR); 
         uint initialPc = readControlRegisterProgramOffset + read_control_register_wrap_target + 1; // Start 1 instruction past the wrap target.
         pio_sm_init(readPio, READ_CONTROL_REGISTER_SM, initialPc, &c);
 
-        // Load 0 into X (the initial register values).
+        // Load 0 into X (set the initial register values).
         pio_sm_exec(readPio, READ_CONTROL_REGISTER_SM, pio_encode_mov(pio_x, pio_null));
     }
 
@@ -103,13 +103,13 @@ void XtBus::Initialize()
     // Don't do this without also maxing the drive strength. 
     readPio->input_sync_bypass |= (1 << IoConfig::DATA_DIR);
 
-    // TODO: Move this to IoConfig as it will be common with DBA8.
+    // TODO: Move this to IoConfig as it will be common on  DBA8.
     {
         // Invert the input state of INV_IRQ and INV_DRQ.  
         gpio_set_inover(IoConfig::INV_DRQ, GPIO_OVERRIDE_INVERT);
         gpio_set_inover(IoConfig::INV_IRQ, GPIO_OVERRIDE_INVERT);
 
-        // TODO: Should also flip the drive state to match to avoid confusion.
+        // TODO: Should also flip the drive state to somewhat avoid confusion.
         // Must be done carefully to avoid accidentally driving the output.
     }
 
@@ -117,7 +117,4 @@ void XtBus::Initialize()
     pio_sm_set_enabled(readPio, SET_PINDIRS_SM, true);
     pio_sm_set_enabled(readPio, READ_CONTROL_REGISTER_SM, true);
     pio_sm_set_enabled(writePio, WRITE_CONTROL_REGISTER_SM, true);
-
-    // TEST CODE:
-    pio_sm_put_blocking(readPio, READ_CONTROL_REGISTER_SM, ~0x89ABCDEF);
 }

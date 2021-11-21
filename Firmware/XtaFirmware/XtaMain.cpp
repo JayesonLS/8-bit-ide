@@ -167,6 +167,10 @@ int main()
 
     // RunTests();
 
+
+    // TEST CODE:
+    pio_sm_put_blocking(pio1, 0, ~0x89ABCDEF);
+
     while(1)
     {
         if (pio_interrupt_get(pio0, 0))

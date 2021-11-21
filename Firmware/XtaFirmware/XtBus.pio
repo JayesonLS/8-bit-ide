@@ -85,6 +85,9 @@
 ;
 ; For worst read setup latency below of 13 cycles, total delay
 ; is ~136ns.
+;
+; Edit: there is an additioanl 2 cycle delay for the input 2-flip-flop synchronizer
+; and one more when reading through the input pin mapping. 
 
 ; These must match the values in IoConfig.h
 .define INV_IOW_GPIO 14
@@ -198,12 +201,12 @@ wait_for_read_start:
 ; writing it anyway to explore.
 ; Register 1 is the flags register, 2 is the configuration register.
 ;
-; Program constantly pull from the FIFO to keep the status register value up to date.
+; Program constantly pulls from the FIFO to keep the status register value up to date.
 ;
 ; Program start point is one instructinon past the wrap target.
 ; X must initialized to the initial register read values (0 for example).
 ;
-; 13 instructions. Up to 13 cycle delay (+ external delays) to set up read.
+; 12 instructions. Up to 14 cycle delay (+ external delays) to set up read.
 ; See top of file for a discussion on max delays. 
 ;-----------------------------------------------------------------------------------------
 .program read_control_register
@@ -212,7 +215,7 @@ wait_for_read_start:
 not_320:
     mov isr, x                      ; Get data value in ISR. 
                                     ; Bottom 8 bits are 322 register value.
-                                    ; Top 4 bits are the low 4 bits of the 321 register
+                                    ; Top 4 bits are the low 4 bits of the 321 register value.
     jmp y-- not_321                 ; Jump on  !0b00001
 read_321:
 
@@ -220,20 +223,18 @@ read_321:
     ; and read of GPIO 23 (PS_MODE) at the pad. This will allow is to ensure that below, we are shifting 1's into
     ; bits 6 and 7 (they are reserved bits and should probably always be 1).
 
-    in osr, 28 side 0 ;NEW_BOARD    ; Shift in DRQ and IRQ still sitting in OSR (Inversion of the values is done by the pad.)
+    in osr, 28 side 0 ;NEW_BOARD    ; Shift in DRQ and IRQ still sitting in bits 0 and 1 of OSR.
+                                    ; The inversion of ~DRQ and ~IRQ is done by the pad configuration.
                                     ; Also shift in 26 more bits to get register into correct position.
 
-
 .wrap_target
-    mov pins, isr					; (Setting tranceiver direction will result in other program setting pindirs)
-;TODO: Remove.
-    push block
+    mov pins, isr                   ; (Setting tranceiver direction will result in other program setting pindirs)
     wait 1 gpio INV_IOR_GPIO	    ; Wait for ~IOR high. set_pindirs will take care of restoring pindirs and tranceiver dir
 
 wait_for_read_start:
     pull noblock					; Keep read values up to date.
     mov x, osr						; If FIFO is empty, X is moved to OSR. So save read values in X.
-    ; For 3 cycle lower worst case latency we can do a "jmp pin wait_for_read_start" here on ~IOR.
+    ; For ~4 cycle lower worst case latency we can do a "jmp pin wait_for_read_start" here on ~IOR.
     mov osr, pins					; in pins are configured to start at address lines
     out y, 5						; Shift A0, A1, ~IOR, ~CS, AEN into Y 
                                     ; (want A1A0= 01 or 10, last 3 all 0)
@@ -261,12 +262,13 @@ read_322:
 ;-----------------------------------------------------------------------------------------
 .program set_pindirs
 .side_set 1 opt				        ; The 1 side set bit is DATA_DIR
-;NEW_BOARD    mov osr, x side 0               ; Get 0x00FF from X and restore data_dir to low. If we need to save an instruction, we can set the program to autopull and use DMA to keep the FIFO fed.
-;NEW_BOARD    wait 1 pin 7    				; Wait on data_dir to go high
-    mov osr, x side 1 [7]; NEW_BOARD . Delay is to be absolutely certain that the pin transitions before we wait on it tranistioning the other way.
-;    irq nowait 2
-    wait 0 gpio INV_DATA_DIR ; NEW_BOARD
+    ; TODO: We could remove 1 instuction here by using ping-pong DMA to constantly feed FF00's into the PIO
+    ; and then setting the PIO to auto-pull.
+    ; If we are not fussed about an extra cycle of latency on transitions, we could use a program
+    ; with just a single 'out exec, 16' instruction and constantly DMA in the instruction stream. 
+    mov osr, x  ; NEW_BOARD         ; Copy FF00 to OSR.
+    wait 0 gpio INV_DATA_DIR ; NEW_BOARD    ; Wait for read program to swap the tranceiver direction.
     out pindirs, 8                  ; Pindirs set to out for all 8 data bits. 74LVC245 transceiver should have reversed by now.
-;    irq nowait 3
     wait 1 gpio INV_IOR_GPIO        ; Wait for ~IOR high
-    out pindirs, 8      			; Restore all pindirs to inputs 
+    out pindirs, 8 side 1 [7]       ; Restore all pindirs to inputs. The delay is to be absolutely certain that any pin and input
+                                    ; delays have expired before we wait on the pin tranistioning the other way.
