@@ -1,4 +1,0 @@
-(sym_lib_table
-  (lib (name 00Custom)(type Legacy)(uri ${KIPRJMOD}/../Libraries/Custom.lib)(options "")(descr ""))
-  (lib (name 01Pico)(type Legacy)(uri ${KIPRJMOD}/../Libraries/Pico/MCU_RaspberryPi_and_Boards.lib)(options "")(descr ""))
-)
